@@ -14,7 +14,6 @@ appsettings.secrets.json
 dist/
 .idea/.idea.sensate-service/.idea/workspace.xml
 **.DotSettings.user
-appsettings.json
 *.csproj.user
 docker-compose-dev.yaml
 docker-compose-staging.yaml
