@@ -1,0 +1,50 @@
+bin/
+obj/
+tools/
+.vscode/
+.vs/
+node_modules/
+Properties/
+SensateService/Properties/
+SensateService/SensateService.csproj.user
+*.njsproj.user
+sensate-service.csproj.user
+appsettings.secrets.json
+.markdownlint.json
+dist/
+.idea/.idea.sensate-service/.idea/workspace.xml
+**.DotSettings.user
+appsettings.json
+*.csproj.user
+docker-compose-dev.yaml
+docker-compose-staging.yaml
+
+MqttHandler/settings/
+
+# User specific
+**/.idea/**/workspace.xml
+**/.idea/**/tasks.xml
+**/.idea/shelf/*
+**/.idea/dictionaries
+
+# Sensitive or high-churn files
+**/.idea/**/dataSources/
+**/.idea/**/dataSources.ids
+**/.idea/**/dataSources.xml
+**/.idea/**/dataSources.local.xml
+**/.idea/**/sqlDataSources.xml
+**/.idea/**/dynamic.xml
+
+# Rider
+# Rider auto-generates .iml files, and contentModel.xml
+**/.idea/**/*.iml
+**/.idea/**/contentModel.xml
+**/.idea/**/modules.xml
+
+AuthService/build/
+AuthService/cmake-build-debug-win32
+AuthService/cmake-build-debug-win64
+AuthService/cmake-build-release
+AuthService/cmake-vs
+AuthService/[Oo]ut
+AuthService/settings/sensors*
