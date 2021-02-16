@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.3.1] - 15-02-2021
 ### Updated
 - Project layout
+- Command publish QoS (from 1 to 3)
 
 ## [1.3.0] - 06-02-2021
 ### Updated
