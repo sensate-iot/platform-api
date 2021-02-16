@@ -49,8 +49,7 @@ namespace SensateIoT.API.Common.ApiCore.Middleware
 
 		private static RequestMethod ToRequestMethod(string method)
 		{
-			return method.ToUpper(CultureInfo.InvariantCulture) switch
-			{
+			return method.ToUpper(CultureInfo.InvariantCulture) switch {
 				"GET" => RequestMethod.HttpGet,
 				"POST" => RequestMethod.HttpPost,
 				"PUT" => RequestMethod.HttpPut,

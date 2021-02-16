@@ -144,8 +144,7 @@ namespace SensateIoT.API.DataApi.Controllers
 				filter.End = DateTime.MaxValue;
 			}
 
-			direction = filter.OrderDirection switch
-			{
+			direction = filter.OrderDirection switch {
 				"asc" => OrderDirection.Ascending,
 				"desc" => OrderDirection.Descending,
 				_ => OrderDirection.None,

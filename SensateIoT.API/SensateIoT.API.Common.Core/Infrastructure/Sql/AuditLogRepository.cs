@@ -57,8 +57,7 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Sql
 				query = query.Take(limit);
 			}
 
-			query = direction switch
-			{
+			query = direction switch {
 				OrderDirection.Ascending => query.OrderBy(x => x.Timestamp),
 				OrderDirection.Descending => query.OrderByDescending(x => x.Timestamp),
 				_ => query
@@ -106,8 +105,7 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Sql
 				}
 			}
 
-			logs = direction switch
-			{
+			logs = direction switch {
 				OrderDirection.Ascending => logs.OrderBy(x => x.Timestamp),
 				OrderDirection.Descending => logs.OrderByDescending(x => x.Timestamp),
 				_ => logs
@@ -144,8 +142,7 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Sql
 				query = query.Take(limit);
 			}
 
-			query = direction switch
-			{
+			query = direction switch {
 				OrderDirection.Ascending => query.OrderBy(x => x.Timestamp),
 				OrderDirection.Descending => query.OrderByDescending(x => x.Timestamp),
 				_ => query
@@ -237,8 +234,7 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Sql
 				data = data.Take(limit);
 			}
 
-			data = direction switch
-			{
+			data = direction switch {
 				OrderDirection.Ascending => data.OrderBy(x => x.Timestamp),
 				OrderDirection.Descending => data.OrderByDescending(x => x.Timestamp),
 				_ => data
@@ -279,8 +275,7 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Sql
 				data = data.Take(limit);
 			}
 
-			data = direction switch
-			{
+			data = direction switch {
 				OrderDirection.Ascending => data.OrderBy(x => x.Timestamp),
 				OrderDirection.Descending => data.OrderByDescending(x => x.Timestamp),
 				_ => data
@@ -327,8 +322,7 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Sql
 				result = this.Data.Where(log => log.Method == method);
 			}
 
-			result = direction switch
-			{
+			result = direction switch {
 				OrderDirection.Ascending => result.OrderBy(x => x.Timestamp),
 				OrderDirection.Descending => result.OrderByDescending(x => x.Timestamp),
 				_ => result
@@ -435,8 +429,7 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Sql
 				data = data.Take(limit);
 			}
 
-			data = direction switch
-			{
+			data = direction switch {
 				OrderDirection.Ascending => data.OrderBy(x => x.Timestamp),
 				OrderDirection.Descending => data.OrderByDescending(x => x.Timestamp),
 				_ => data

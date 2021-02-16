@@ -71,8 +71,7 @@ namespace SensateIoT.API.AuthApi.Controllers
 			var rv = new PaginationResult<Json.AuditLog>();
 
 
-			var orderDirection = order switch
-			{
+			var orderDirection = order switch {
 				"asc" => OrderDirection.Ascending,
 				"desc" => OrderDirection.Descending,
 				_ => OrderDirection.None,
@@ -143,8 +142,7 @@ namespace SensateIoT.API.AuthApi.Controllers
 			var result = new PaginationResult<Json.AuditLog>();
 			PaginationResult<AuditLog> logs;
 
-			var orderDirection = order switch
-			{
+			var orderDirection = order switch {
 				"asc" => OrderDirection.Ascending,
 				"desc" => OrderDirection.Descending,
 				_ => OrderDirection.None,

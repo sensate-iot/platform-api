@@ -72,8 +72,7 @@ namespace SensateIoT.API.DataApi.Controllers
 											 [FromQuery] int skip = 0, [FromQuery] int take = 0,
 											 [FromQuery] string order = "asc")
 		{
-			var orderDirection = order switch
-			{
+			var orderDirection = order switch {
 				"asc" => OrderDirection.Ascending,
 				"desc" => OrderDirection.Descending,
 				_ => OrderDirection.None,

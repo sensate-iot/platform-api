@@ -96,8 +96,7 @@ namespace SensateIoT.API.Common.Core.Services.DataProcessing
 
 			queryResults.RemoveAll(x => x == null);
 
-			queryResults = order switch
-			{
+			queryResults = order switch {
 				OrderDirection.Descending => queryResults.OrderByDescending(x => x.Timestamp).ToList(),
 				OrderDirection.Ascending => queryResults.OrderBy(x => x.Timestamp).ToList(),
 				_ => queryResults

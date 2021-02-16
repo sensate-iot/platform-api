@@ -91,8 +91,7 @@ namespace SensateIoT.API.DataApi.Controllers
 				filter.End = DateTime.MaxValue;
 			}
 
-			direction = filter.OrderDirection switch
-			{
+			direction = filter.OrderDirection switch {
 				"asc" => OrderDirection.Ascending,
 				"desc" => OrderDirection.Descending,
 				_ => OrderDirection.None,
@@ -124,8 +123,7 @@ namespace SensateIoT.API.DataApi.Controllers
 			[FromQuery] int skip = -1, [FromQuery] int limit = -1, [FromQuery] string order = "")
 		{
 			var sensor = await this.m_sensors.GetAsync(sensorId).AwaitBackground();
-			var orderDirection = order switch
-			{
+			var orderDirection = order switch {
 				"asc" => OrderDirection.Ascending,
 				"desc" => OrderDirection.Descending,
 				_ => OrderDirection.None,
