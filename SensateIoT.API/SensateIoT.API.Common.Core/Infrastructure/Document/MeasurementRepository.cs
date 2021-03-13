@@ -46,7 +46,7 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Document
 				var filter = builder.ElemMatch(x => x.Measurements,
 											   x => x.Timestamp >= start) &
 							 builder.ElemMatch(x => x.Measurements,
-											   x => x.Timestamp <= end) &
+											   x => x.Timestamp < end) &
 							 builder.Eq(x => x.SensorId, sensor.InternalId);
 
 				await this._collection.DeleteManyAsync(filter, ct).AwaitBackground();
@@ -71,7 +71,7 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Document
 				ids.Add(sensor.InternalId);
 			}
 
-			var matchTimestamp = new BsonDocument {
+			var initialMatch = new BsonDocument {
 				{
 					"SensorId", new BsonDocument {
 						{"$in", ids}
@@ -89,32 +89,10 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Document
 						{"$gte", start},
 						{"$lte", end}
 					}
-				},
+				}
 			};
 
-			var projectRewrite = new BsonDocument {
-				{"_id", 1},
-				{"SensorId", 1},
-				{"Timestamp", "$Measurements.Timestamp"},
-				{"Location", "$Measurements.Location"},
-				{"Data", "$Measurements.Data"},
-			};
-
-
-			var pipeline = new List<BsonDocument> {
-				new BsonDocument {{"$match", matchTimestamp}},
-				new BsonDocument {{"$unwind", "$Measurements"}},
-				new BsonDocument {{"$project", projectRewrite}},
-			};
-
-			if(skip > 0) {
-				pipeline.Add(new BsonDocument { { "$skip", skip } });
-			}
-
-			if(limit > 0) {
-				pipeline.Add(new BsonDocument { { "$limit", limit } });
-			}
-
+			var pipeline = BuildPipeline(initialMatch, start, end, skip, limit, order);
 			var query = this._collection.Aggregate<MeasurementsQueryResult>(pipeline, cancellationToken: ct);
 			var results = await query.ToListAsync(ct).AwaitBackground();
 
@@ -148,6 +126,57 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Document
 			return this.m_geoService.GetMeasurementsNear(measurements.ToList(), coords, max, skip, limit, order, ct);
 		}
 
+		private static List<BsonDocument> BuildPipeline(BsonValue initialMatch, DateTime start, DateTime end, int skip, int limit, OrderDirection order)
+		{
+			var projectRewrite = new BsonDocument {
+				{"_id", 1},
+				{"SensorId", 1},
+				{"Timestamp", "$Measurements.Timestamp"},
+				{"Location", "$Measurements.Location"},
+				{"Data", "$Measurements.Data"},
+			};
+
+			var timestampMatch = new BsonDocument {
+				{
+					"Timestamp", new BsonDocument {
+						{"$gte", start},
+						{"$lte", end}
+					}
+				}
+			};
+
+			var pipeline = new List<BsonDocument> {
+				new BsonDocument {{"$match", initialMatch}},
+				new BsonDocument {{"$unwind", "$Measurements"}},
+				new BsonDocument {{"$project", projectRewrite}},
+				new BsonDocument {{"$match", timestampMatch}},
+			};
+
+			if(order != OrderDirection.None) {
+				var tSort = new BsonDocument {
+					{"Timestamp", order.ToInt()}
+				};
+
+				var sort = new BsonDocument {
+					{"$sort", tSort}
+				};
+
+				pipeline.Add(sort);
+			}
+
+			if(skip > 0) {
+				pipeline.Add(new BsonDocument { { "$skip", skip } });
+			}
+
+			if(limit > 0) {
+				pipeline.Add(new BsonDocument { { "$limit", limit } });
+			}
+
+
+
+			return pipeline;
+		}
+
 		private async Task<IEnumerable<MeasurementsQueryResult>> GetMeasurementsBetweenAsync(
 			Sensor sensor, DateTime start, DateTime end,
 			int skip = -1, int limit = -1,
@@ -172,40 +201,7 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Document
 				},
 			};
 
-			var projectRewrite = new BsonDocument {
-				{"_id", 1},
-				{"SensorId", 1},
-				{"Timestamp", "$Measurements.Timestamp"},
-				{"Location", "$Measurements.Location"},
-				{"Data", "$Measurements.Data"},
-			};
-
-			var tSort = new BsonDocument {
-				{ "Timestamp", order.ToInt() }
-			};
-
-			var sort = new BsonDocument {
-				{ "$sort", tSort }
-			};
-
-			var pipeline = new List<BsonDocument> {
-				new BsonDocument {{"$match", matchTimestamp}},
-				new BsonDocument {{"$unwind", "$Measurements"}},
-				new BsonDocument {{"$project", projectRewrite}},
-			};
-
-			if(order != OrderDirection.None) {
-				pipeline.Add(sort);
-			}
-
-			if(skip > 0) {
-				pipeline.Add(new BsonDocument { { "$skip", skip } });
-			}
-
-			if(limit > 0) {
-				pipeline.Add(new BsonDocument { { "$limit", limit } });
-			}
-
+			var pipeline = BuildPipeline(matchTimestamp, start, end, skip, limit, order);
 			var query = this._collection.Aggregate<MeasurementsQueryResult>(pipeline, cancellationToken: ct);
 			var results = await query.ToListAsync(ct).AwaitBackground();
 

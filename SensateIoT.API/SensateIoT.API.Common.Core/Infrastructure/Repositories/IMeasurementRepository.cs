@@ -21,8 +21,6 @@ using MeasurementsQueryResult = SensateIoT.API.Common.Data.Models.MeasurementsQu
 
 namespace SensateIoT.API.Common.Core.Infrastructure.Repositories
 {
-	using MeasurementMap = IDictionary<ObjectId, List<MeasurementModel>>;
-
 	public interface IMeasurementRepository
 	{
 		Task<IEnumerable<MeasurementsQueryResult>> GetBetweenAsync(Sensor sensor, DateTime start, DateTime end,
