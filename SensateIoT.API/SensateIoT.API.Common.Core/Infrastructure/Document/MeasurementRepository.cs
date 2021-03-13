@@ -140,7 +140,7 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Document
 				{
 					"Timestamp", new BsonDocument {
 						{"$gte", start},
-						{"$lte", end}
+						{"$lt", end}
 					}
 				}
 			};
