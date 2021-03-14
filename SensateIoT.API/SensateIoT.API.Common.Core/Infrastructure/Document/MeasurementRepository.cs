@@ -15,7 +15,7 @@ using Microsoft.Extensions.Logging;
 
 using MongoDB.Bson;
 using MongoDB.Driver;
-
+using SensateIoT.API.Common.Core.Exceptions;
 using SensateIoT.API.Common.Core.Helpers;
 using SensateIoT.API.Common.Core.Infrastructure.Repositories;
 using SensateIoT.API.Common.Core.Services.DataProcessing;
@@ -39,20 +39,17 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Document
 			this.m_geoService = geo;
 		}
 
-		public virtual async Task DeleteBetweenAsync(Sensor sensor, DateTime start, DateTime end, CancellationToken ct = default)
+		public virtual async Task DeleteBucketAsync(Sensor sensor, DateTime bucket, CancellationToken ct)
 		{
 			try {
 				var builder = Builders<MeasurementBucket>.Filter;
-				var filter = builder.ElemMatch(x => x.Measurements,
-											   x => x.Timestamp >= start) &
-							 builder.ElemMatch(x => x.Measurements,
-											   x => x.Timestamp < end) &
-							 builder.Eq(x => x.SensorId, sensor.InternalId);
+				var filter = builder.Eq(x => x.SensorId, sensor.InternalId) &
+							 builder.Eq(x => x.Timestamp, bucket.ThisHour());
 
-				await this._collection.DeleteManyAsync(filter, ct).AwaitBackground();
-			} catch(Exception ex) {
-				this._logger.LogInformation($"Unable to delete measurements: {ex.Message}");
-				this._logger.LogDebug(ex.StackTrace);
+				await this._collection.DeleteManyAsync(filter, ct).ConfigureAwait(false);
+			} catch(MongoException ex) {
+				this._logger.LogError(ex, "Unable to remove buckets (bucket: {bucket:O}, sensor: {sensor}).", bucket, sensor.InternalId);
+				throw new DatabaseException($"Unable to remove {bucket:O} from database (Sensor: {sensor.InternalId}", "Measurements", ex);
 			}
 		}
 

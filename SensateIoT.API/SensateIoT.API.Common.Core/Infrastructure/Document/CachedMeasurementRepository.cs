@@ -61,19 +61,6 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Document
 			return data == null ? null : JsonConvert.DeserializeObject<IEnumerable<MeasurementsQueryResult>>(data);
 		}
 
-		public override async Task DeleteBetweenAsync(Sensor sensor, DateTime start, DateTime end, CancellationToken ct = default)
-		{
-			string key;
-
-			key = $"{sensor.InternalId}::{start.ToString(CultureInfo.InvariantCulture)}::{end.ToString(CultureInfo.InvariantCulture)}";
-			var tasks = new[] {
-				this._cache.RemoveAsync(key, ct),
-				base.DeleteBetweenAsync(sensor, start, end, ct)
-			};
-
-			await Task.WhenAll(tasks).AwaitBackground();
-		}
-
 		public override async Task<IEnumerable<MeasurementsQueryResult>> GetBetweenAsync(Sensor sensor,
 																						 DateTime start,
 																						 DateTime end,

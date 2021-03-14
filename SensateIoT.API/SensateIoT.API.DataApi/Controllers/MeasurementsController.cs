@@ -7,8 +7,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Http;
@@ -17,6 +17,7 @@ using Microsoft.Extensions.Logging;
 
 using SensateIoT.API.Common.ApiCore.Attributes;
 using SensateIoT.API.Common.ApiCore.Controllers;
+using SensateIoT.API.Common.Core.Exceptions;
 using SensateIoT.API.Common.Core.Helpers;
 using SensateIoT.API.Common.Core.Infrastructure.Repositories;
 using SensateIoT.API.Common.Core.Services.DataProcessing;
@@ -168,7 +169,7 @@ namespace SensateIoT.API.DataApi.Controllers
 		[ProducesResponseType(204)]
 		[ProducesResponseType(401)]
 		[ProducesResponseType(404)]
-		public async Task<IActionResult> Delete([FromQuery] string sensorId, [FromQuery] DateTime start, [FromQuery] DateTime end)
+		public async Task<IActionResult> Delete([FromQuery] string sensorId, [FromQuery] DateTime bucket)
 		{
 			Sensor sensor;
 
@@ -183,13 +184,10 @@ namespace SensateIoT.API.DataApi.Controllers
 					return this.Unauthorized();
 				}
 
-				await this.m_measurements.DeleteBetweenAsync(sensor, start, end).AwaitBackground();
-			} catch(Exception ex) {
-				this.m_logger.LogInformation($"Unable to delete measurements for sensor {sensorId} between " +
-											 $"{start.ToString("u", CultureInfo.InvariantCulture)} and " +
-											 $"{end.ToString("u", CultureInfo.InvariantCulture)}: {ex.Message}");
-				this.m_logger.LogDebug(ex.StackTrace);
-				return this.BadRequest();
+				await this.m_measurements.DeleteBucketAsync(sensor, bucket, CancellationToken.None).ConfigureAwait(false);
+			} catch(DatabaseException ex) {
+				this.m_logger.LogWarning(ex, $"Unable to delete measurements for sensor {sensorId} in bucket {bucket}.");
+				return this.StatusCode(500);
 			}
 
 			return this.NoContent();
