@@ -10,7 +10,7 @@ ensured through clever use of caches and document stores.
 
 [header1]: https://github.com/sensate-iot/SensateService/workflows/Docker/badge.svg "Docker Build"
 [header2]: https://github.com/sensate-iot/SensateService/workflows/Format%20check/badge.svg ".NET format"
-[header3]: https://img.shields.io/badge/version-v1.3.3-informational "Sensate IoT version"
+[header3]: https://img.shields.io/badge/version-v1.3.4-informational "Sensate IoT version"
 
 ## Sensor communication
 
