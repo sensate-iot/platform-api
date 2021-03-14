@@ -39,17 +39,20 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Document
 			this.m_geoService = geo;
 		}
 
-		public virtual async Task DeleteBucketAsync(Sensor sensor, DateTime bucket, CancellationToken ct)
+		public virtual async Task DeleteBucketAsync(Sensor sensor, DateTime bucketStart, DateTime bucketEnd, CancellationToken ct)
 		{
 			try {
 				var builder = Builders<MeasurementBucket>.Filter;
 				var filter = builder.Eq(x => x.SensorId, sensor.InternalId) &
-							 builder.Eq(x => x.Timestamp, bucket.ThisHour());
+							 builder.Gte(x => x.Timestamp, bucketStart.ThisHour()) &
+							 builder.Lt(x => x.Timestamp, bucketEnd.ThisHour());
 
 				await this._collection.DeleteManyAsync(filter, ct).ConfigureAwait(false);
 			} catch(MongoException ex) {
-				this._logger.LogError(ex, "Unable to remove buckets (bucket: {bucket:O}, sensor: {sensor}).", bucket, sensor.InternalId);
-				throw new DatabaseException($"Unable to remove {bucket:O} from database (Sensor: {sensor.InternalId}", "Measurements", ex);
+				this._logger.LogError(ex, "Unable to remove buckets (bucket: {bucketStart:O} - {bucketEnd:O}, sensor: {sensor}).", 
+				                      bucketStart, bucketEnd, sensor.InternalId);
+				throw new DatabaseException($"Unable to remove {bucketStart:O} - {bucketEnd:O} from database (Sensor: {sensor.InternalId}",
+				                            "Measurements", ex);
 			}
 		}
 

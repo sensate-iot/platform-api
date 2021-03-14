@@ -35,6 +35,6 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Repositories
 		Task<IEnumerable<MeasurementsQueryResult>> GetMeasurementsNearAsync(IEnumerable<Sensor> sensors, DateTime start, DateTime end, GeoJsonPoint coords,
 			int max = 100, int skip = -1, int limit = -1, OrderDirection order = OrderDirection.None, CancellationToken ct = default);
 
-		Task DeleteBucketAsync(Sensor sensor, DateTime bucket, CancellationToken ct);
+		Task DeleteBucketAsync(Sensor sensor, DateTime bucketStart, DateTime bucketEnd, CancellationToken ct);
 	}
 }
