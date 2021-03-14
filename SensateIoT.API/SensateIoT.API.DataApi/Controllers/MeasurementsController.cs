@@ -169,7 +169,7 @@ namespace SensateIoT.API.DataApi.Controllers
 		[ProducesResponseType(204)]
 		[ProducesResponseType(401)]
 		[ProducesResponseType(404)]
-		public async Task<IActionResult> Delete([FromQuery] string sensorId, [FromQuery] DateTime bucket)
+		public async Task<IActionResult> Delete([FromQuery] string sensorId, [FromQuery] DateTime bucketStart, DateTime bucketEnd)
 		{
 			Sensor sensor;
 
@@ -184,9 +184,9 @@ namespace SensateIoT.API.DataApi.Controllers
 					return this.Unauthorized();
 				}
 
-				await this.m_measurements.DeleteBucketAsync(sensor, bucket, CancellationToken.None).ConfigureAwait(false);
+				await this.m_measurements.DeleteBucketAsync(sensor, bucketStart, bucketEnd, CancellationToken.None).ConfigureAwait(false);
 			} catch(DatabaseException ex) {
-				this.m_logger.LogWarning(ex, $"Unable to delete measurements for sensor {sensorId} in bucket {bucket}.");
+				this.m_logger.LogWarning(ex, $"Unable to delete measurements for sensor {sensorId} in bucket {bucketStart} - {bucketEnd}.");
 				return this.StatusCode(500);
 			}
 
