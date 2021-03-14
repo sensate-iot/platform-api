@@ -49,10 +49,10 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Document
 
 				await this._collection.DeleteManyAsync(filter, ct).ConfigureAwait(false);
 			} catch(MongoException ex) {
-				this._logger.LogError(ex, "Unable to remove buckets (bucket: {bucketStart:O} - {bucketEnd:O}, sensor: {sensor}).", 
-				                      bucketStart, bucketEnd, sensor.InternalId);
+				this._logger.LogError(ex, "Unable to remove buckets (bucket: {bucketStart:O} - {bucketEnd:O}, sensor: {sensor}).",
+									  bucketStart, bucketEnd, sensor.InternalId);
 				throw new DatabaseException($"Unable to remove {bucketStart:O} - {bucketEnd:O} from database (Sensor: {sensor.InternalId}",
-				                            "Measurements", ex);
+											"Measurements", ex);
 			}
 		}
 
