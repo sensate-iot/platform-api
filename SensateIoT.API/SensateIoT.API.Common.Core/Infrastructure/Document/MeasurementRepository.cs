@@ -44,7 +44,7 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Document
 			try {
 				var builder = Builders<MeasurementBucket>.Filter;
 				var filter = builder.Eq(x => x.SensorId, sensor.InternalId) &
-				             builder.Eq(x => x.Timestamp, bucket.ThisHour());
+							 builder.Eq(x => x.Timestamp, bucket.ThisHour());
 
 				await this._collection.DeleteManyAsync(filter, ct).ConfigureAwait(false);
 			} catch(MongoException ex) {
