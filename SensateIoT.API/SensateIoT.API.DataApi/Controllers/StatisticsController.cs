@@ -179,7 +179,7 @@ namespace SensateIoT.API.DataApi.Controllers
 
 
 				var statsTask = this.m_systemStats.GetBetweenAsync(sensors, start, end);
-				var blobTask = this.m_blobs.GetAsync(sensors, start, end, 0, 100);
+				var blobTask = this.m_blobs.GetAsync(sensors, start, end);
 				var blobs = await blobTask.AwaitBackground();
 				long bytes = 0;
 

@@ -59,8 +59,8 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Sql
 			var idlst = new NpgsqlParameter("idlist", NpgsqlDbType.Text) { Value = sensoridlist };
 			var _start = new NpgsqlParameter("start", NpgsqlDbType.Timestamp) { Value = start };
 			var _end = new NpgsqlParameter("end", NpgsqlDbType.Timestamp) { Value = end };
-			var _skip = new NpgsqlParameter("ofst", NpgsqlDbType.Integer) { Value = GetNullableInteger(skip) };
-			var _limit = new NpgsqlParameter("lim", NpgsqlDbType.Integer) { Value = GetNullableInteger(limit) };
+			var _skip = new NpgsqlParameter("ofst", NpgsqlDbType.Integer) { Value = GetNullableInteger(skip, 0) };
+			var _limit = new NpgsqlParameter("lim", NpgsqlDbType.Integer) { Value = GetNullableInteger(limit, int.MaxValue)};
 			var _direction = new NpgsqlParameter("direction", NpgsqlDbType.Varchar) { Value = GetOrder(order) };
 
 			cmd.Parameters.Add(idlst);
@@ -93,10 +93,10 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Sql
 			return rv;
 		}
 
-		private static int? GetNullableInteger(int value)
+		private static int? GetNullableInteger(int value, int? @default)
 		{
 			if(value < 0) {
-				return 0;
+				return @default;
 			}
 
 			return value;
