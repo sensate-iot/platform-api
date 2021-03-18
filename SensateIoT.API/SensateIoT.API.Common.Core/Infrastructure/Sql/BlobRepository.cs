@@ -24,7 +24,7 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Sql
 	{
 		private readonly NetworkContext m_ctx;
 
-		private const string StatsGetBlobs = "StatsService_GetBlobs";
+		private const string StatsGetBlobs = "Generic_GetBlobs";
 
 		public BlobRepository(NetworkContext context)
 		{
@@ -52,12 +52,16 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Sql
 			cmd.CommandType = System.Data.CommandType.StoredProcedure;
 			cmd.CommandText = StatsGetBlobs;
 
+			if(order == OrderDirection.None) {
+				order = OrderDirection.Ascending;
+			}
+
 			var idlst = new NpgsqlParameter("idlist", NpgsqlDbType.Text) { Value = sensoridlist };
 			var _start = new NpgsqlParameter("start", NpgsqlDbType.Timestamp) { Value = start };
 			var _end = new NpgsqlParameter("end", NpgsqlDbType.Timestamp) { Value = end };
 			var _skip = new NpgsqlParameter("ofst", NpgsqlDbType.Integer) { Value = GetNullableInteger(skip) };
 			var _limit = new NpgsqlParameter("lim", NpgsqlDbType.Integer) { Value = GetNullableInteger(limit) };
-			var _direction = new NpgsqlParameter("direction", NpgsqlDbType.Varchar) { Value = order.ToString("G") };
+			var _direction = new NpgsqlParameter("direction", NpgsqlDbType.Varchar) { Value = GetOrder(order) };
 
 			cmd.Parameters.Add(idlst);
 			cmd.Parameters.Add(_start);
@@ -92,10 +96,25 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Sql
 		private static int? GetNullableInteger(int value)
 		{
 			if(value < 0) {
-				return null;
+				return 0;
 			}
 
 			return value;
+		}
+
+		private static string GetOrder(OrderDirection order)
+		{
+			switch(order) {
+			case OrderDirection.Descending:
+				return "DESC";
+
+			case OrderDirection.None:
+			case OrderDirection.Ascending:
+				return "ASC";
+
+			default:
+				throw new ArgumentOutOfRangeException(nameof(order), order, null);
+			}
 		}
 	}
 }

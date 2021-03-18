@@ -8,7 +8,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 using MongoDB.Driver;
@@ -44,14 +43,6 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Document
 			return await result.ToListAsync().AwaitBackground();
 		}
 
-		public async Task<IEnumerable<SensorStatisticsEntry>> GetAsync(Expression<Func<SensorStatisticsEntry, bool>> expr)
-		{
-			var worker = this._stats.FindAsync(expr);
-			var data = await worker.AwaitBackground();
-			return data.ToList();
-		}
-
-		#region Entry Getters
 
 		public async Task<IEnumerable<SensorStatisticsEntry>> GetAfterAsync(IEnumerable<Sensor> sensors, DateTime dt)
 		{
@@ -104,6 +95,5 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Document
 
 			return await result.ToListAsync().AwaitBackground();
 		}
-		#endregion
 	}
 }

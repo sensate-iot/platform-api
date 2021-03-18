@@ -22,6 +22,7 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Document
 		public IMongoCollection<Sensor> Sensors => this._db.GetCollection<Sensor>("Sensors");
 		public IMongoCollection<Message> Messages => this._db.GetCollection<Message>("Messages");
 		public IMongoCollection<ControlMessage> ControlMessages => this._db.GetCollection<ControlMessage>("ControlMessages");
+		public IMongoCollection<SystemStatisticsEntry> SystemStatistics => this._db.GetCollection<SystemStatisticsEntry>("SystemStatistics");
 		public IMongoCollection<SensorStatisticsEntry> Statistics => this._db.GetCollection<SensorStatisticsEntry>("Statistics");
 
 		public SensateContext(IOptions<MongoDBSettings> options) : this(options.Value)

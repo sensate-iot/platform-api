@@ -19,6 +19,5 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Repositories
 		Task<IEnumerable<SensorStatisticsEntry>> GetAfterAsync(DateTime date);
 		Task<IEnumerable<SensorStatisticsEntry>> GetBetweenAsync(Sensor sensor, DateTime start, DateTime end);
 		Task<IEnumerable<SensorStatisticsEntry>> GetBetweenAsync(IList<Sensor> sensors, DateTime start, DateTime end);
-		Task<IEnumerable<SensorStatisticsEntry>> GetAsync(Expression<Func<SensorStatisticsEntry, bool>> expr);
 	}
 }
