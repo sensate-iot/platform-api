@@ -99,14 +99,14 @@ namespace SensateIoT.API.DataApi.Controllers
 			return this.Ok(jobj);
 		}
 
-		private async Task<IActionResult> GetByMethod(Sensor sensor, RequestMethod method, DateTime start, DateTime end)
+		private async Task<IActionResult> GetByMethod(Sensor sensor, StatisticsType method, DateTime start, DateTime end)
 		{
-			var data = await this._stats.GetAsync(e => e.SensorId == sensor.InternalId && e.Method == method &&
-													   e.Date >= start && e.Date <= end).AwaitBackground();
+			var data = await this._stats.GetAsync(e => e.SensorId == sensor.InternalId && e.Type == method &&
+													   e.Timestamp >= start && e.Timestamp <= end).AwaitBackground();
 			var flat = Flatten(data);
 
 			foreach(var entry in flat) {
-				entry.Method = method;
+				entry.Type = method;
 			}
 
 			return this.Ok(flat);
@@ -118,7 +118,7 @@ namespace SensateIoT.API.DataApi.Controllers
 		[ProducesResponseType(403)]
 		[ProducesResponseType(typeof(Status), 403)]
 		[ProducesResponseType(typeof(Status), 400)]
-		public async Task<IActionResult> StatisticsBySensor(string sensorid, [FromQuery] DateTime start, [FromQuery] DateTime end, [FromQuery] RequestMethod method = RequestMethod.Any)
+		public async Task<IActionResult> StatisticsBySensor(string sensorid, [FromQuery] DateTime start, [FromQuery] DateTime end, [FromQuery] StatisticsType method = StatisticsType.MeasurementStorage)
 		{
 			var status = new Status { ErrorCode = ReplyCode.BadInput, Message = "Invalid request!" };
 
@@ -136,7 +136,7 @@ namespace SensateIoT.API.DataApi.Controllers
 			if(end == DateTime.MinValue)
 				end = DateTime.Now;
 
-			if(method != RequestMethod.Any)
+			if(method != StatisticsType.MeasurementStorage)
 				return await this.GetByMethod(sensor, method, start, end).AwaitBackground();
 
 			var data = await this._stats.GetBetweenAsync(sensor, start, end).AwaitBackground();
@@ -153,7 +153,7 @@ namespace SensateIoT.API.DataApi.Controllers
 		{
 			var jobj = new List<DailyStatisticsEntry>();
 			var statistics = await this.GetStatsFor(this.CurrentUser, start, end).AwaitBackground();
-			var entries = statistics.GroupBy(entry => entry.Date)
+			var entries = statistics.GroupBy(entry => entry.Timestamp)
 				.Select(grp => new { DayOfWeek = (int)grp.Key.DayOfWeek, Count = AccumulateStatisticsEntries(grp.AsEnumerable()) }).ToList();
 
 			for(var idx = 0; idx < DaysPerWeek; idx++) {
@@ -198,7 +198,7 @@ namespace SensateIoT.API.DataApi.Controllers
 			}
 
 			var statistics = await this._stats.GetBetweenAsync(sensor, start, end).AwaitBackground();
-			var entries = statistics.GroupBy(entry => entry.Date)
+			var entries = statistics.GroupBy(entry => entry.Timestamp)
 				.Select(grp => new { DayOfWeek = (int)grp.Key.DayOfWeek, Count = AccumulateStatisticsEntries(grp.AsEnumerable()) }).ToList();
 
 			for(var idx = 0; idx < DaysPerWeek; idx++) {
@@ -281,7 +281,7 @@ namespace SensateIoT.API.DataApi.Controllers
 				var blobs = await blobTask.AwaitBackground();
 				var bytes = blobs.Aggregate(0L, (x, blob) => x + blob.FileSize);
 
-				var aggregated = result.Aggregate(0L, (r, item) => r + item.Measurements);
+				var aggregated = result.Aggregate(0L, (r, item) => r + item.Count);
 				var logs = await this.m_auditlogs.CountAsync(entry => entry.AuthorId == user.Id &&
 														  entry.Timestamp >= start.ToUniversalTime() &&
 														  entry.Timestamp <= end.ToUniversalTime() &&
@@ -327,9 +327,9 @@ namespace SensateIoT.API.DataApi.Controllers
 			long counter = 0;
 			IDictionary<DateTime, long> totals = new Dictionary<DateTime, long>();
 
-			var grouped = statistics.GroupBy(entry => entry.Date).Select(grp => new {
+			var grouped = statistics.GroupBy(entry => entry.Timestamp).Select(grp => new {
 				Timestamp = grp.Key,
-				Count = grp.AsEnumerable().Aggregate(0L, (current, entry) => current + entry.Measurements)
+				Count = grp.AsEnumerable().Aggregate(0L, (current, entry) => current + entry.Count)
 			}).ToList();
 
 			foreach(var entry in grouped) {
@@ -372,9 +372,9 @@ namespace SensateIoT.API.DataApi.Controllers
 
 			var statistics = await this._stats.GetBetweenAsync(sensor, start, end).AwaitBackground();
 
-			var grouped = statistics.GroupBy(entry => entry.Date).Select(grp => new {
+			var grouped = statistics.GroupBy(entry => entry.Timestamp).Select(grp => new {
 				Timestamp = grp.Key,
-				Count = grp.AsEnumerable().Aggregate(0L, (current, entry) => current + entry.Measurements)
+				Count = grp.AsEnumerable().Aggregate(0L, (current, entry) => current + entry.Count)
 			}).ToList();
 
 			foreach(var entry in grouped) {
@@ -414,7 +414,7 @@ namespace SensateIoT.API.DataApi.Controllers
 
 		private static IEnumerable<SensorStatisticsEntry> Flatten(IEnumerable<SensorStatisticsEntry> data)
 		{
-			var sorted = data.GroupBy(entry => entry.Date).Select(grp => grp.AsEnumerable());
+			var sorted = data.GroupBy(entry => entry.Timestamp).Select(grp => grp.AsEnumerable());
 			IList<SensorStatisticsEntry> stats = new List<SensorStatisticsEntry>();
 
 			foreach(var entries in sorted) {
@@ -428,8 +428,8 @@ namespace SensateIoT.API.DataApi.Controllers
 				}
 
 				new_entry.InternalId = ObjectId.GenerateNewId();
-				new_entry.Measurements = stats_entries.Aggregate(0, (current, entry) => current + entry.Measurements);
-				new_entry.Date = first.Date;
+				new_entry.Count = stats_entries.Aggregate(0, (current, entry) => current + entry.Count);
+				new_entry.Timestamp = first.Timestamp;
 				new_entry.SensorId = first.SensorId;
 				stats.Add(new_entry);
 			}
@@ -439,7 +439,7 @@ namespace SensateIoT.API.DataApi.Controllers
 
 		private static long AccumulateStatisticsEntries(IEnumerable<SensorStatisticsEntry> entries)
 		{
-			return entries.Aggregate(0L, (current, entry) => current + entry.Measurements);
+			return entries.Aggregate(0L, (current, entry) => current + entry.Count);
 		}
 	}
 }

@@ -9,11 +9,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Threading;
 using System.Threading.Tasks;
+
 using MongoDB.Driver;
+
 using SensateIoT.API.Common.Core.Helpers;
 using SensateIoT.API.Common.Core.Infrastructure.Repositories;
+using SensateIoT.API.Common.Data.Enums;
 using SensateIoT.API.Common.Data.Models;
 
 namespace SensateIoT.API.Common.Core.Infrastructure.Document
@@ -34,8 +36,9 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Document
 			var startHour = start.ThisHour();
 			var endHour = end.ThisHour();
 			var filter = builder.In(x => x.SensorId, ids) &
-						 builder.Gte(x => x.Date, startHour) &
-						 builder.Lte(x => x.Date, endHour);
+						 builder.Gte(x => x.Timestamp, startHour) &
+						 builder.Lte(x => x.Timestamp, endHour) & 
+						 builder.Eq(x => x.Type, StatisticsType.MeasurementStorage);
 
 			var result = await this._stats.FindAsync(filter).AwaitBackground();
 			return await result.ToListAsync().AwaitBackground();
@@ -48,24 +51,6 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Document
 			return data.ToList();
 		}
 
-		public async Task DeleteBySensorAsync(Sensor sensor, CancellationToken ct = default)
-		{
-			var filter = Builders<SensorStatisticsEntry>.Filter
-				.Eq(x => x.InternalId, sensor.InternalId);
-			await this._collection.DeleteManyAsync(filter, ct).AwaitBackground();
-		}
-
-		public async Task DeleteBySensorAsync(Sensor sensor, DateTime @from, DateTime to, CancellationToken ct = default)
-		{
-			var startHour = @from.ThisHour();
-			var endHour = to.ThisHour();
-			var builder = Builders<SensorStatisticsEntry>.Filter;
-			var filter = builder.Eq(x => x.InternalId, sensor.InternalId) &
-						 builder.Gte(x => x.Date, startHour) &
-						 builder.Lte(x => x.Date, endHour);
-			await this._collection.DeleteManyAsync(filter, ct).AwaitBackground();
-		}
-
 		#region Entry Getters
 
 		public async Task<IEnumerable<SensorStatisticsEntry>> GetAfterAsync(IEnumerable<Sensor> sensors, DateTime dt)
@@ -75,7 +60,9 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Document
 			var date = dt.ThisHour();
 			var ids = sensors.Select(x => x.InternalId);
 
-			filter = filterBuilder.In(x => x.SensorId, ids) & filterBuilder.Gte(x => x.Date, date);
+			filter = filterBuilder.In(x => x.SensorId, ids) &
+			         filterBuilder.Gte(x => x.Timestamp, date) &
+			         filterBuilder.Eq(x => x.Type, StatisticsType.MeasurementStorage);
 			var result = await this._stats.FindAsync(filter).AwaitBackground();
 
 			if(result == null) {
@@ -85,27 +72,13 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Document
 			return await result.ToListAsync().AwaitBackground();
 		}
 
-		public async Task<IEnumerable<SensorStatisticsEntry>> GetAfterAsync(Sensor sensor, DateTime dt)
-		{
-			FilterDefinition<SensorStatisticsEntry> filter;
-			var filterBuilder = Builders<SensorStatisticsEntry>.Filter;
-			var date = dt.ThisHour();
-
-			filter = filterBuilder.Eq(x => x.SensorId, sensor.InternalId) & filterBuilder.Gte(x => x.Date, date);
-			var result = await this._stats.FindAsync(filter).AwaitBackground();
-
-			if(result == null)
-				return null;
-
-			return await result.ToListAsync().AwaitBackground();
-		}
-
 		public async Task<IEnumerable<SensorStatisticsEntry>> GetAfterAsync(DateTime date)
 		{
 			FilterDefinition<SensorStatisticsEntry> filter;
 			var filterBuilder = Builders<SensorStatisticsEntry>.Filter;
 
-			filter = filterBuilder.Gte(x => x.Date, date);
+			filter = filterBuilder.Gte(x => x.Timestamp, date) &
+				filterBuilder.Eq(x => x.Type, StatisticsType.MeasurementStorage);
 			var result = await this._stats.FindAsync(filter).AwaitBackground();
 
 			if(result == null)
@@ -122,8 +95,8 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Document
 			var startDate = start.ThisHour();
 			var endDate = end.ThisHour();
 
-			filter = builder.Eq(x => x.SensorId, sensor.InternalId) & builder.Gte(x => x.Date, startDate) &
-					 builder.Lte(x => x.Date, endDate);
+			filter = builder.Eq(x => x.SensorId, sensor.InternalId) & builder.Gte(x => x.Timestamp, startDate) &
+					 builder.Lte(x => x.Timestamp, endDate);
 			var result = await this._stats.FindAsync(filter).AwaitBackground();
 
 			if(result == null)

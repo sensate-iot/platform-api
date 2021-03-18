@@ -58,7 +58,7 @@ namespace SensateIoT.API.DashboardApi.Controllers
 
 			var measurements = await this._stats.GetAfterAsync(DateTime.UtcNow.ThisHour()).AwaitBackground();
 
-			measurementCount = measurements.Aggregate(0L, (current, entry) => current + entry.Measurements);
+			measurementCount = measurements.Aggregate(0L, (current, entry) => current + entry.Count);
 
 			db.MeasurementStatsLastHour = measurementCount;
 			db.MeasurementStats = await measurementStats.AwaitBackground();
@@ -79,12 +79,12 @@ namespace SensateIoT.API.DashboardApi.Controllers
 
 			var measurements = await this._stats.GetAfterAsync(today).AwaitBackground();
 			foreach(var entry in measurements) {
-				if(!totals.TryGetValue(entry.Date.Ticks, out var value)) {
+				if(!totals.TryGetValue(entry.Timestamp.Ticks, out var value)) {
 					value = 0L;
 				}
 
-				value += entry.Measurements;
-				totals[entry.Date.Ticks] = value;
+				value += entry.Count;
+				totals[entry.Timestamp.Ticks] = value;
 			}
 
 			for(var idx = 0; idx < HoursPerDay; idx++) {
