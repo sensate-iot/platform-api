@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 19-03-2021
+### Added
+- System statistics repository
+- Additional statistics to the `Count` model
+
+### Updated
+- Statistics controller
+- Sensor statistics repository
+- Blobs repository: fix blob lookup with regards to the `LIMIT`.
+
+### Removed
+- References to the trigger invocation table
+- Unused code
+
 ## [1.3.4] - 14-03-2021
 ### Added
 - Bucket range deletion

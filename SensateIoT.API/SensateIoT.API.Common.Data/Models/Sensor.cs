@@ -7,9 +7,12 @@
 
 using System;
 using System.ComponentModel.DataAnnotations;
+
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+
 using Newtonsoft.Json;
+
 using SensateIoT.API.Common.Data.Converters;
 
 namespace SensateIoT.API.Common.Data.Models

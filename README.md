@@ -8,8 +8,8 @@ well documented RESTful API. The backend scales extremely well, both
 vertically and horizontally. High availability and performance is
 ensured through clever use of caches and document stores.
 
-[header1]: https://github.com/sensate-iot/SensateService/workflows/Docker/badge.svg "Docker Build"
-[header2]: https://github.com/sensate-iot/SensateService/workflows/Format%20check/badge.svg ".NET format"
+[header1]: https://github.com/sensate-iot/platform-api/workflows/Docker/badge.svg "Docker Build"
+[header2]: https://github.com/sensate-iot/platform-api/workflows/Format%20check/badge.svg ".NET format"
 [header3]: https://img.shields.io/badge/version-v1.3.4-informational "Sensate IoT version"
 
 ## Sensor communication

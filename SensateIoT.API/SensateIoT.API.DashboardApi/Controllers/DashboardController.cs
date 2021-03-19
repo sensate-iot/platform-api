@@ -112,7 +112,7 @@ namespace SensateIoT.API.DashboardApi.Controllers
 
 			var sensors = await this._sensors.GetAsync(this.CurrentUser).AwaitBackground();
 			var stats = await this._stats.GetBetweenAsync(sensors.ToList(), start, DateTime.UtcNow).AwaitBackground();
-			return stats.Aggregate(0L, (value, current) => value + current.Measurements);
+			return stats.Aggregate(0L, (value, current) => value + current.Count);
 		}
 
 		private async Task<long> GetApiCallCountAsync()
@@ -180,14 +180,14 @@ namespace SensateIoT.API.DashboardApi.Controllers
 
 		private static long AccumulateStatisticsEntries(IEnumerable<SensorStatisticsEntry> entries)
 		{
-			return entries.Aggregate(0L, (current, entry) => current + entry.Measurements);
+			return entries.Aggregate(0L, (current, entry) => current + entry.Count);
 		}
 
 		private static Graph<int, long> GetMeasurementStatsCumulativePerDay(IEnumerable<SensorStatisticsEntry> statistics)
 		{
 			Graph<int, long> data;
 
-			var entries = statistics.GroupBy(entry => entry.Date)
+			var entries = statistics.GroupBy(entry => entry.Timestamp)
 				.Select(grp => new { DayOfWeek = (int)grp.Key.DayOfWeek, Count = AccumulateStatisticsEntries(grp.AsEnumerable()) }).ToList();
 
 			data = new Graph<int, long>();
@@ -212,9 +212,9 @@ namespace SensateIoT.API.DashboardApi.Controllers
 			totals = new Dictionary<DateTime, long>();
 			counter = 0L;
 
-			var grouped = statistics.GroupBy(entry => entry.Date).Select(grp => new {
+			var grouped = statistics.GroupBy(entry => entry.Timestamp).Select(grp => new {
 				grp.Key.Date,
-				Count = grp.AsEnumerable().Aggregate(0L, (current, entry) => current + entry.Measurements)
+				Count = grp.AsEnumerable().Aggregate(0L, (current, entry) => current + entry.Count)
 			}).ToList();
 
 			foreach(var entry in grouped) {
@@ -253,12 +253,12 @@ namespace SensateIoT.API.DashboardApi.Controllers
 			}
 
 			foreach(var entry in measurements) {
-				if(!totals.TryGetValue(entry.Date.Ticks, out var value)) {
+				if(!totals.TryGetValue(entry.Timestamp.Ticks, out var value)) {
 					value = 0L;
 				}
 
-				value += entry.Measurements;
-				totals[entry.Date.Ticks] = value;
+				value += entry.Count;
+				totals[entry.Timestamp.Ticks] = value;
 			}
 
 			for(var idx = 0; idx < HoursPerDay; idx++) {
