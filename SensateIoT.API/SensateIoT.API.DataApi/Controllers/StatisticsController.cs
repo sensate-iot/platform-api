@@ -110,7 +110,7 @@ namespace SensateIoT.API.DataApi.Controllers
 
 			var user = await this.m_users.GetAsync(userId).AwaitBackground();
 			var sensor = await this._sensors.GetAsync(sensorId).ConfigureAwait(false);
-			var sensors = new List<Sensor> {sensor};
+			var sensors = new List<Sensor> { sensor };
 
 			if(sensor.Owner != user.Id) {
 				return this.BadRequest(new Status {
@@ -129,8 +129,8 @@ namespace SensateIoT.API.DataApi.Controllers
 		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[AdminApiKey]
 		public async Task<IActionResult> CountByUserIdAsync(string userId,
-		                                       [FromQuery] DateTime start,
-		                                       [FromQuery] DateTime end)
+											   [FromQuery] DateTime start,
+											   [FromQuery] DateTime end)
 		{
 
 			var user = await this.m_users.GetAsync(userId).AwaitBackground();
@@ -150,8 +150,8 @@ namespace SensateIoT.API.DataApi.Controllers
 		[ProducesResponseType(403)]
 		[ProducesResponseType(404)]
 		public async Task<IActionResult> CountBySensorIdAsync([FromQuery] string sensorId,
-		                                                      [FromQuery] DateTime start,
-		                                                      [FromQuery] DateTime end)
+															  [FromQuery] DateTime start,
+															  [FromQuery] DateTime end)
 		{
 			var sensor = await this._sensors.GetAsync(sensorId).ConfigureAwait(false);
 			var auth = await this.AuthenticateUserForSensor(sensor, false);
@@ -163,7 +163,7 @@ namespace SensateIoT.API.DataApi.Controllers
 				});
 			}
 
-			var sensors = new List<Sensor> {sensor};
+			var sensors = new List<Sensor> { sensor };
 
 			return await this.CountAsync(this.CurrentUser, sensors, start, end).AwaitBackground();
 		}
@@ -212,7 +212,7 @@ namespace SensateIoT.API.DataApi.Controllers
 
 				foreach(var systemStatisticsEntry in statsResult) {
 					count.MessagesRoutedOther += systemStatisticsEntry.TotalMessagesRouted -
-					                             systemStatisticsEntry.TotalTriggersExecuted;
+												 systemStatisticsEntry.TotalTriggersExecuted;
 					count.Messages += systemStatisticsEntry.TotalMessagesStored;
 					count.Measurements += systemStatisticsEntry.TotalMeasurementsStored;
 					count.TriggerInvocations += systemStatisticsEntry.TotalTriggersExecuted;

@@ -60,7 +60,7 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Sql
 			var _start = new NpgsqlParameter("start", NpgsqlDbType.Timestamp) { Value = start };
 			var _end = new NpgsqlParameter("end", NpgsqlDbType.Timestamp) { Value = end };
 			var _skip = new NpgsqlParameter("ofst", NpgsqlDbType.Integer) { Value = GetNullableInteger(skip, 0) };
-			var _limit = new NpgsqlParameter("lim", NpgsqlDbType.Integer) { Value = GetNullableInteger(limit, int.MaxValue)};
+			var _limit = new NpgsqlParameter("lim", NpgsqlDbType.Integer) { Value = GetNullableInteger(limit, int.MaxValue) };
 			var _direction = new NpgsqlParameter("direction", NpgsqlDbType.Varchar) { Value = GetOrder(order) };
 
 			cmd.Parameters.Add(idlst);

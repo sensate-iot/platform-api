@@ -11,7 +11,7 @@ using SensateIoT.API.Common.Data.Models;
 
 namespace SensateIoT.API.Common.Core.Infrastructure.Document
 {
-	public class SystemStatisticsRepository : AbstractDocumentRepository<SystemStatisticsEntry>, ISystemStatisticsRepository 
+	public class SystemStatisticsRepository : AbstractDocumentRepository<SystemStatisticsEntry>, ISystemStatisticsRepository
 	{
 		public SystemStatisticsRepository(SensateContext ctx) : base(ctx.SystemStatistics)
 		{
@@ -24,8 +24,8 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Document
 			var startHour = start.ThisHour();
 			var endHour = end.ThisHour();
 			var filter = builder.In(x => x.Id.SensorId, ids) &
-			             builder.Gte(x => x.Id.Timestamp, startHour) &
-			             builder.Lte(x => x.Id.Timestamp, endHour);
+						 builder.Gte(x => x.Id.Timestamp, startHour) &
+						 builder.Lte(x => x.Id.Timestamp, endHour);
 
 			var result = await this._collection.FindAsync(filter).AwaitBackground();
 			return await result.ToListAsync().AwaitBackground();
@@ -40,7 +40,7 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Document
 			var ids = sensors.Select(x => x.InternalId);
 
 			filter = filterBuilder.In(x => x.Id.SensorId, ids) &
-			         filterBuilder.Gte(x => x.Id.Timestamp, date);
+					 filterBuilder.Gte(x => x.Id.Timestamp, date);
 			var result = await this._collection.FindAsync(filter).AwaitBackground();
 
 			if(result == null) {
@@ -74,7 +74,7 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Document
 			var endDate = end.ThisHour();
 
 			filter = builder.Eq(x => x.Id.SensorId, sensor.InternalId) &
-			         builder.Gte(x => x.Id.Timestamp, startDate) &
+					 builder.Gte(x => x.Id.Timestamp, startDate) &
 					 builder.Lte(x => x.Id.Timestamp, endDate);
 			var result = await this._collection.FindAsync(filter).AwaitBackground();
 
