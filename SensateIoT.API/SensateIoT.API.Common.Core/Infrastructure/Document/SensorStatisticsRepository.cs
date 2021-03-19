@@ -35,10 +35,10 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Document
 			var startHour = start.ThisHour();
 			var endHour = end.ThisHour();
 			var filter = builder.In(x => x.SensorId, ids) &
-			             builder.Gte(x => x.Timestamp, startHour) &
-			             builder.Lte(x => x.Timestamp, endHour) & (
-				             builder.Eq(x => x.Type, StatisticsType.MeasurementStorage) |
-				             builder.Eq(x => x.Type, StatisticsType.MessageStorage));
+						 builder.Gte(x => x.Timestamp, startHour) &
+						 builder.Lte(x => x.Timestamp, endHour) & (
+							 builder.Eq(x => x.Type, StatisticsType.MeasurementStorage) |
+							 builder.Eq(x => x.Type, StatisticsType.MessageStorage));
 
 			var result = await this._stats.FindAsync(filter).AwaitBackground();
 			return await result.ToListAsync().AwaitBackground();
