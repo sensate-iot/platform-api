@@ -14,8 +14,8 @@ namespace SensateIoT.API.DataApi.Json
 		public long Sensors { get; set; }
 		public long Links { get; set; }
 		public long TriggerInvocations { get; set; }
+		public long MessagesRoutedOther { get; set; } // Not executed triggers, live data
 		public long ApiCalls { get; set; }
 		public long BlobStorage { get; set; }
-		public long ActuatorMessages { get; set; }
 	}
 }

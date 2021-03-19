@@ -6,8 +6,12 @@
  */
 
 using System;
+
 using Microsoft.Extensions.DependencyInjection;
+
 using MongoDB.Bson.Serialization;
+using StackExchange.Redis;
+
 using SensateIoT.API.Common.Config.Config;
 using SensateIoT.API.Common.Core.Converters;
 using SensateIoT.API.Common.Core.Infrastructure;
@@ -20,7 +24,6 @@ using SensateIoT.API.Common.Data.Models;
 using SensateIoT.Common.Caching.Abstract;
 using SensateIoT.Common.Caching.Memory;
 using SensateIoT.Common.Caching.Redis;
-using StackExchange.Redis;
 
 namespace SensateIoT.API.Common.Core.Init
 {
@@ -64,6 +67,7 @@ namespace SensateIoT.API.Common.Core.Init
 		{
 			BsonSerializer.RegisterSerializer(typeof(DateTime), new BsonUtcDateTimeSerializer());
 
+			services.AddScoped<ISystemStatisticsRepository, SystemStatisticsRepository>();
 			services.AddScoped<ISensorStatisticsRepository, SensorStatisticsRepository>();
 			services.AddScoped<IMessageRepository, MessageRepository>();
 			services.AddScoped<IControlMessageRepository, ControlMessageRepository>();
