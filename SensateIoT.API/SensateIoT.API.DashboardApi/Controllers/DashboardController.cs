@@ -9,9 +9,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
+
 using SensateIoT.API.Common.ApiCore.Attributes;
 using SensateIoT.API.Common.ApiCore.Controllers;
 using SensateIoT.API.Common.Core.Helpers;
@@ -68,7 +70,7 @@ namespace SensateIoT.API.DashboardApi.Controllers
 			}
 
 			UserDashboard board;
-			var raw = await this.GetStatsFor(this.CurrentUser, DateTime.MinValue).AwaitBackground();
+			var raw = await this.GetStatsFor(this.CurrentUser, DateTime.UtcNow.AddMonths(-1)).AwaitBackground();
 			List<SensorStatisticsEntry> stats;
 
 			stats = raw?.ToList();
@@ -78,7 +80,6 @@ namespace SensateIoT.API.DashboardApi.Controllers
 				ApiCallCount = await this.GetApiCallCountAsync().AwaitBackground(),
 				MeasurementsTodayCount = await this.CountMeasurementsAsync().AwaitBackground(),
 				SecurityTokenCount = await this.CountSecurityTokensAsync(),
-
 
 				MeasurementsToday = await this.GetMeasurementStatsToday().AwaitBackground(),
 				ApiCallsLastWeek = await this.GetApiCallsPerDayAsync().AwaitBackground()
