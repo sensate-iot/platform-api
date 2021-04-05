@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Updated
 - Statistics lookup period
 - Dashboard API
+- Code style and style guide issues
+
+### Removed
+- Removed unused methods
 
 ## [1.4.0] - 19-03-2021
 ### Added
