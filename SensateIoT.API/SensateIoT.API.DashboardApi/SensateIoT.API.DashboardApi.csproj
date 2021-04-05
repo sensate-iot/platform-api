@@ -4,7 +4,7 @@
     <TargetFramework>net5.0</TargetFramework>
     <UserSecretsId>SensateService</UserSecretsId>
     <Authors>Michel Megens</Authors>
-    <Version>1.4.0</Version>
+    <Version>1.4.1</Version>
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <RootNamespace>SensateIoT.API.DashboardApi</RootNamespace>
     <AssemblyName>SensateIoT.API.DashboardApi</AssemblyName>
@@ -20,9 +20,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.2" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.2" />
-    <PackageReference Include="swashbuckle.aspnetcore" Version="6.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.4" />
+    <PackageReference Include="swashbuckle.aspnetcore" Version="6.1.1" />
   </ItemGroup>
 
   <ItemGroup>
