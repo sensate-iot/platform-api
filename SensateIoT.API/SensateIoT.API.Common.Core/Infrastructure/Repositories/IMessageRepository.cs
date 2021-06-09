@@ -23,20 +23,20 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Repositories
 		Task<IEnumerable<Message>> GetAsync(Sensor sensor, DateTime start, DateTime end, int skip = 0, int take = -1, OrderDirection order = OrderDirection.None, CancellationToken ct = default);
 		Task<Message> GetAsync(string messageId, CancellationToken ct = default);
 		Task<IEnumerable<Message>> GetMessagesNearAsync(IEnumerable<Sensor> sensors,
-		                                                               DateTime start, 
-		                                                               DateTime end, 
-		                                                               GeoJsonPoint coords, 
-		                                                               int max = 100,
-		                                                               int skip = -1,
-		                                                               int limit = -1, 
-		                                                               OrderDirection order = OrderDirection.None,
-		                                                               CancellationToken ct = default);
+																	   DateTime start,
+																	   DateTime end,
+																	   GeoJsonPoint coords,
+																	   int max = 100,
+																	   int skip = -1,
+																	   int limit = -1,
+																	   OrderDirection order = OrderDirection.None,
+																	   CancellationToken ct = default);
 		Task<long> CountAsync(IEnumerable<Sensor> sensors,
-		                                                               DateTime start, 
-		                                                               DateTime end, 
-		                                                               GeoJsonPoint coords = null,
-		                                                               int radius = 100,
-		                                                               CancellationToken ct = default);
+																	   DateTime start,
+																	   DateTime end,
+																	   GeoJsonPoint coords = null,
+																	   int radius = 100,
+																	   CancellationToken ct = default);
 		Task<IEnumerable<Message>> GetMessagesBetweenAsync(IEnumerable<Sensor> sensors,
 																			   DateTime start, DateTime end,
 																			   int skip = -1, int limit = -1,

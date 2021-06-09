@@ -77,8 +77,8 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Document
 		}
 
 		public async Task<IEnumerable<Message>> GetMessagesNearAsync(IEnumerable<Sensor> sensors, DateTime start, DateTime end, GeoJsonPoint coords, int max = 100,
-		                                                                            int skip = -1, int limit = -1, OrderDirection order = OrderDirection.None,
-		                                                                            CancellationToken ct = default)
+																					int skip = -1, int limit = -1, OrderDirection order = OrderDirection.None,
+																					CancellationToken ct = default)
 		{
 			var data = await this.GetMessagesBetweenAsync(sensors, start, end, -1, -1, order, ct).ConfigureAwait(false);
 
@@ -91,11 +91,11 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Document
 		}
 
 		public async Task<long> CountAsync(IEnumerable<Sensor> sensors,
-		                                                   DateTime start,
-		                                                   DateTime end,
-		                                                   GeoJsonPoint coords = null,
+														   DateTime start,
+														   DateTime end,
+														   GeoJsonPoint coords = null,
 														   int radius = 100,
-		                                                   CancellationToken ct = default)
+														   CancellationToken ct = default)
 		{
 			var ids = new BsonArray();
 
@@ -117,7 +117,7 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Document
 			};
 
 			if(coords == null) {
-				return await this._collection.CountDocumentsAsync(match, cancellationToken:ct).ConfigureAwait(false);
+				return await this._collection.CountDocumentsAsync(match, cancellationToken: ct).ConfigureAwait(false);
 			}
 
 			var cursor = await this._collection.FindAsync(match, cancellationToken: ct).ConfigureAwait(false);
@@ -127,16 +127,16 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Document
 		}
 
 		public async Task<IEnumerable<Message>> GetMessagesBetweenAsync(IEnumerable<Sensor> sensors, DateTime start, DateTime end, int skip = -1, int limit = -1,
-		                                                                OrderDirection order = OrderDirection.None, CancellationToken ct = default)
+																		OrderDirection order = OrderDirection.None, CancellationToken ct = default)
 		{
 			var cur = this.GetCursor(sensors, start, end, skip, limit, order, ct);
 			return await cur.ToListAsync(ct).ConfigureAwait(false);
 		}
 
 		private IAsyncCursor<Message> GetCursor(IEnumerable<Sensor> sensors, DateTime start, DateTime end,
-		                                                  int skip = -1, int limit = -1,
-		                                                  OrderDirection order = OrderDirection.None,
-		                                                  CancellationToken ct = default)
+														  int skip = -1, int limit = -1,
+														  OrderDirection order = OrderDirection.None,
+														  CancellationToken ct = default)
 		{
 			var ids = new BsonArray();
 
@@ -158,7 +158,7 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Document
 			};
 
 			var pipeline = BuildPipeline(initialMatch, skip, limit, order);
-			return  this._collection.Aggregate<Message>(pipeline, cancellationToken: ct);
+			return this._collection.Aggregate<Message>(pipeline, cancellationToken: ct);
 		}
 
 		private static List<BsonDocument> BuildPipeline(BsonValue initialMatch, int skip, int limit, OrderDirection order)

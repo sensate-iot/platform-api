@@ -118,12 +118,12 @@ namespace SensateIoT.API.Common.Core.Services.DataProcessing
 		}
 
 		public IList<Message> GetMessagesNear(List<Message> messages,
-		                                      GeoJsonPoint coords,
-		                                      int radius = 100,
-		                                      int skip = -1,
-		                                      int limit = -1,
-		                                      OrderDirection order = OrderDirection.None,
-		                                      CancellationToken ct = default)
+											  GeoJsonPoint coords,
+											  int radius = 100,
+											  int skip = -1,
+											  int limit = -1,
+											  OrderDirection order = OrderDirection.None,
+											  CancellationToken ct = default)
 		{
 			DistanceCalcuationMethod calc;
 			var queryResults = new List<Message>(messages.Count);
