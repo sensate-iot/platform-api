@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,9 +17,12 @@ using Microsoft.AspNetCore.Mvc;
 using SensateIoT.API.Common.ApiCore.Controllers;
 using SensateIoT.API.Common.Core.Helpers;
 using SensateIoT.API.Common.Core.Infrastructure.Repositories;
+using SensateIoT.API.Common.Core.Services.DataProcessing;
 using SensateIoT.API.Common.Data.Converters;
+using SensateIoT.API.Common.Data.Dto.Generic;
 using SensateIoT.API.Common.Data.Dto.Json.Out;
 using SensateIoT.API.Common.Data.Enums;
+using SensateIoT.API.DataApi.Dto;
 
 using Message = SensateIoT.API.Common.Data.Dto.Generic.Message;
 
@@ -29,14 +33,17 @@ namespace SensateIoT.API.DataApi.Controllers
 	public class MessagesController : AbstractDataController
 	{
 		private readonly IMessageRepository m_messages;
+		private readonly ISensorService m_sensorService;
 
 		public MessagesController(IHttpContextAccessor ctx,
 								  IMessageRepository messages,
 								  ISensorLinkRepository links,
 								  IApiKeyRepository keys,
+								  ISensorService sensorService,
 								  ISensorRepository sensors) : base(ctx, sensors, links, keys)
 		{
 			this.m_messages = messages;
+			this.m_sensorService = sensorService;
 		}
 
 		private IActionResult CreateNotAuthorizedResult()
@@ -98,6 +105,73 @@ namespace SensateIoT.API.DataApi.Controllers
 
 			var msgs = await this.m_messages.GetAsync(sensor, start.Value, end.Value, skip, take, orderDirection).AwaitBackground();
 			return this.Ok(MessageConverter.Convert(msgs));
+		}
+
+		[HttpPost("filter")]
+		[ProducesResponseType(typeof(IEnumerable<Message>), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(Status), StatusCodes.Status422UnprocessableEntity)]
+		public async Task<IActionResult> Filter([FromBody] Filter filter)
+		{
+			var status = new Status();
+			var pagination = new PaginationResult<Common.Data.Models.Message>();
+
+			if(filter.SensorIds == null || filter.SensorIds.Count <= 0) {
+				status.ErrorCode = ReplyCode.BadInput;
+				status.Message = "Sensor ID list cannot be empty!";
+
+				return this.UnprocessableEntity(status);
+			}
+
+			filter.Skip ??= -1;
+			filter.Limit ??= -1;
+
+			var sensors = await this.m_sensorService.GetSensorsAsync(this.CurrentUser).AwaitBackground();
+			var filtered = sensors.Values.Where(x => filter.SensorIds.Contains(x.InternalId.ToString())).ToList();
+
+			if(filtered.Count <= 0) {
+				status.Message = "No sensors available!";
+				status.ErrorCode = ReplyCode.NotAllowed;
+
+				return this.UnprocessableEntity(status);
+			}
+
+			OrderDirection direction;
+
+			if(string.IsNullOrEmpty(filter.OrderDirection)) {
+				filter.OrderDirection = "";
+			}
+
+			if(filter.End == DateTime.MinValue) {
+				filter.End = DateTime.MaxValue;
+			}
+
+			direction = filter.OrderDirection switch {
+				"asc" => OrderDirection.Ascending,
+				"desc" => OrderDirection.Descending,
+				_ => OrderDirection.None,
+			};
+
+			if(filter.Latitude != null & filter.Longitude != null && filter.Radius != null && filter.Radius.Value > 0) {
+				var coords = new GeoJsonPoint {
+					Latitude = filter.Latitude.Value,
+					Longitude = filter.Longitude.Value
+				};
+
+				pagination.Values = await this.m_messages
+					.GetMessagesNearAsync(filtered, filter.Start, filter.End, coords, filter.Radius.Value,
+						filter.Skip.Value, filter.Limit.Value, direction).AwaitBackground();
+				pagination.Count = (int)await this.m_messages
+					.CountAsync(filtered, filter.Start, filter.End, coords, filter.Radius.Value).ConfigureAwait(false);
+			} else {
+				pagination.Values = await this.m_messages
+					.GetMessagesBetweenAsync(filtered, filter.Start, filter.End, filter.Skip.Value,
+												 filter.Limit.Value, direction).AwaitBackground();
+				pagination.Count = (int)await this.m_messages
+					.CountAsync(filtered, filter.Start, filter.End, null, 0).ConfigureAwait(false);
+			}
+
+
+			return this.Ok(pagination);
 		}
 
 		[HttpDelete]

@@ -10,8 +10,8 @@ be answered, and issues/bug reports will be instantly closed.
 
 | Version   | Supported          |
 | --------- | ------------------ |
-| 1.4.x     | :white_check_mark: |
-| < 1.3.x   | :x:                |
+| 1.5.x     | :white_check_mark: |
+| < 1.4.x   | :x:                |
 
 ## Reporting a Vulnerability
 
