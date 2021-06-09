@@ -10,10 +10,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 using MongoDB.Driver.GeoJsonObjectModel;
+
 using SensateIoT.API.Common.Data.Dto.Generic;
 using SensateIoT.API.Common.Data.Enums;
+
 using MeasurementsQueryResult = SensateIoT.API.Common.Data.Models.MeasurementsQueryResult;
+using Message = SensateIoT.API.Common.Data.Models.Message;
 
 namespace SensateIoT.API.Common.Core.Services.DataProcessing
 {
@@ -92,6 +96,62 @@ namespace SensateIoT.API.Common.Core.Services.DataProcessing
 				}
 
 				results[index] = measurement;
+			});
+
+			queryResults.RemoveAll(x => x == null);
+
+			queryResults = order switch {
+				OrderDirection.Descending => queryResults.OrderByDescending(x => x.Timestamp).ToList(),
+				OrderDirection.Ascending => queryResults.OrderBy(x => x.Timestamp).ToList(),
+				_ => queryResults
+			};
+
+			if(skip > 0) {
+				queryResults = queryResults.Skip(skip).ToList();
+			}
+
+			if(limit > 0) {
+				queryResults = queryResults.Take(limit).ToList();
+			}
+
+			return queryResults;
+		}
+
+		public IList<Message> GetMessagesNear(List<Message> messages,
+		                                      GeoJsonPoint coords,
+		                                      int radius = 100,
+		                                      int skip = -1,
+		                                      int limit = -1,
+		                                      OrderDirection order = OrderDirection.None,
+		                                      CancellationToken ct = default)
+		{
+			DistanceCalcuationMethod calc;
+			var queryResults = new List<Message>(messages.Count);
+
+			for(var idx = 0; idx < messages.Count; idx++) {
+				queryResults.Add(null);
+			}
+
+			var results = queryResults;
+
+			if(radius >= ErrorMarginBoundary || messages.Count > MeasurementMargin) {
+				calc = FastCalculateDistanceBetween;
+			} else {
+				calc = CalculateDistanceBetween;
+			}
+
+			var geoCoords = coords.ToCoordinates();
+
+			Parallel.For(0, messages.Count, (index, state) => {
+				double maxDist = radius;
+				var message = messages[index];
+				var dist = calc(geoCoords, message.Location.Coordinates);
+
+				if(dist > maxDist) {
+					return;
+				}
+
+				results[index] = message;
 			});
 
 			queryResults.RemoveAll(x => x == null);
