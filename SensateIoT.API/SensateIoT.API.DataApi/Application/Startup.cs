@@ -19,6 +19,7 @@ using Microsoft.OpenApi.Models;
 
 using SensateIoT.API.Common.ApiCore.Init;
 using SensateIoT.API.Common.ApiCore.Middleware;
+using SensateIoT.API.Common.ApiCore.Swagger;
 using SensateIoT.API.Common.Config.Config;
 using SensateIoT.API.Common.Core.Infrastructure.Repositories;
 using SensateIoT.API.Common.Core.Infrastructure.Sql;
@@ -73,6 +74,10 @@ namespace SensateIoT.API.DataApi.Application
 					Title = "Sensate IoT Data API - Version 1",
 					Version = "v1"
 				});
+
+
+				c.SchemaFilter<ObjectIdSchemaFilter>();
+				c.OperationFilter<ObjectIdOperationFilter>();
 
 				c.AddSecurityDefinition("key", new OpenApiSecurityScheme {
 					In = ParameterLocation.Query,
