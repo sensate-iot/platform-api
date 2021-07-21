@@ -117,7 +117,7 @@ namespace SensateIoT.API.Common.ApiCore.Middleware
 
 				await logs.CreateAsync(log, CancellationToken.None).AwaitBackground();
 			} catch(FormatException ex) {
-				this._logger.LogInformation(ex, "Invalid format detected!");
+				this._logger.LogWarning(ex, "Invalid format detected!");
 				await this.RespondErrorAsync(ctx, ReplyCode.BadInput, "Invalid input supplied!", 422).AwaitBackground();
 			} catch(Exception ex) {
 				this._logger.LogWarning(ex, "Unknown error occurred!");
