@@ -8,7 +8,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace SensateIoT.API.DataApi.Dto
+namespace SensateIoT.API.Common.Data.Dto
 {
 	public class Response<TValue>
 	{

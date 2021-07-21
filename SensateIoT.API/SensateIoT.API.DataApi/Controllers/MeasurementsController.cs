@@ -22,6 +22,7 @@ using SensateIoT.API.Common.Core.Helpers;
 using SensateIoT.API.Common.Core.Infrastructure.Repositories;
 using SensateIoT.API.Common.Core.Services.DataProcessing;
 using SensateIoT.API.Common.Data.Converters;
+using SensateIoT.API.Common.Data.Dto;
 using SensateIoT.API.Common.Data.Dto.Generic;
 using SensateIoT.API.Common.Data.Enums;
 using SensateIoT.API.Common.Data.Models;
