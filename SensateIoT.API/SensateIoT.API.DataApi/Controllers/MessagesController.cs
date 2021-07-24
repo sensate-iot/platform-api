@@ -19,9 +19,11 @@ using SensateIoT.API.Common.Core.Helpers;
 using SensateIoT.API.Common.Core.Infrastructure.Repositories;
 using SensateIoT.API.Common.Core.Services.DataProcessing;
 using SensateIoT.API.Common.Data.Converters;
+using SensateIoT.API.Common.Data.Dto;
 using SensateIoT.API.Common.Data.Dto.Generic;
 using SensateIoT.API.Common.Data.Dto.Json.Out;
 using SensateIoT.API.Common.Data.Enums;
+using SensateIoT.API.Common.Data.Models;
 using SensateIoT.API.DataApi.Dto;
 
 using Message = SensateIoT.API.Common.Data.Dto.Generic.Message;
@@ -48,37 +50,45 @@ namespace SensateIoT.API.DataApi.Controllers
 
 		private IActionResult CreateNotAuthorizedResult()
 		{
-			return this.Unauthorized(new Status {
-				Message = "Unable to authorize current user!",
-				ErrorCode = ReplyCode.NotAllowed
-			});
+			var response = new Response<object>();
+
+			response.AddError("Unable to authorize current user!");
+			return this.Unauthorized(response);
 		}
 
 		[HttpGet("{messageId}")]
-		[ProducesResponseType(typeof(Status), StatusCodes.Status401Unauthorized)]
-		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		[ProducesResponseType(typeof(Message), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(Response<object>), StatusCodes.Status401Unauthorized)]
+		[ProducesResponseType(typeof(Response<object>), StatusCodes.Status404NotFound)]
+		[ProducesResponseType(typeof(Response<Message>), StatusCodes.Status200OK)]
 		public async Task<IActionResult> Get(string messageId)
 		{
 			var msg = await this.m_messages.GetAsync(messageId).AwaitBackground();
+			var response = new Response<Message>();
 
 			if(msg == null) {
-				return this.NotFound();
+				response.Errors.Add($"Message with ID {messageId} not found.");
+				return this.NotFound(response);
 			}
 
 			var auth = await this.AuthenticateUserForSensor(msg.SensorId.ToString()).AwaitBackground();
 
-			return auth ? this.Ok(MessageConverter.Convert(msg)) : this.CreateNotAuthorizedResult();
+			if(!auth) {
+				return this.CreateNotAuthorizedResult();
+			}
+
+			response.Data = MessageConverter.Convert(msg);
+			return this.Ok(response);
 		}
 
 		[HttpGet]
-		[ProducesResponseType(typeof(Status), StatusCodes.Status401Unauthorized)]
-		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		[ProducesResponseType(typeof(IEnumerable<Message>), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(Response<object>), StatusCodes.Status401Unauthorized)]
+		[ProducesResponseType(typeof(Response<object>), StatusCodes.Status404NotFound)]
+		[ProducesResponseType(typeof(Response<IEnumerable<Message>>), StatusCodes.Status200OK)]
 		public async Task<IActionResult> Get([FromQuery] string sensorId, [FromQuery] DateTime? start, [FromQuery] DateTime? end,
 											 [FromQuery] int skip = 0, [FromQuery] int take = 0,
 											 [FromQuery] string order = "asc")
 		{
+			var response = new Response<IEnumerable<Message>>();
 			var orderDirection = order switch {
 				"asc" => OrderDirection.Ascending,
 				"desc" => OrderDirection.Descending,
@@ -100,20 +110,23 @@ namespace SensateIoT.API.DataApi.Controllers
 			var sensor = await this.m_sensors.GetAsync(sensorId).AwaitBackground();
 
 			if(sensor == null) {
-				return this.NotFound();
+				response.Errors.Add($"Sensor with ID {sensorId} not found.");
+				return this.NotFound(response);
 			}
 
 			var msgs = await this.m_messages.GetAsync(sensor, start.Value, end.Value, skip, take, orderDirection).AwaitBackground();
-			return this.Ok(MessageConverter.Convert(msgs));
+			response.Data = MessageConverter.Convert(msgs);
+
+			return this.Ok(response);
 		}
 
 		[HttpPost("filter")]
-		[ProducesResponseType(typeof(IEnumerable<Message>), StatusCodes.Status200OK)]
-		[ProducesResponseType(typeof(Status), StatusCodes.Status422UnprocessableEntity)]
+		[ProducesResponseType(typeof(Response<PaginationResult<Message>>), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(Response<object>), StatusCodes.Status422UnprocessableEntity)]
 		public async Task<IActionResult> Filter([FromBody] Filter filter)
 		{
 			var status = new Status();
-			var pagination = new PaginationResult<Common.Data.Models.Message>();
+			var pagination = new Response<PaginationResult<Common.Data.Models.Message>>();
 
 			if(filter.SensorIds == null || filter.SensorIds.Count <= 0) {
 				status.ErrorCode = ReplyCode.BadInput;
@@ -129,12 +142,16 @@ namespace SensateIoT.API.DataApi.Controllers
 			var filtered = sensors.Values.Where(x => filter.SensorIds.Contains(x.InternalId.ToString())).ToList();
 
 			if(filtered.Count <= 0) {
-				status.Message = "No sensors available!";
-				status.ErrorCode = ReplyCode.NotAllowed;
-
-				return this.UnprocessableEntity(status);
+				pagination.AddError("None of the input sensors could be found.");
+				return this.UnprocessableEntity(pagination);
 			}
 
+			await this.GetFilteredMessagesAsync(filter, pagination, filtered).ConfigureAwait(false);
+			return this.Ok(pagination);
+		}
+
+		private async Task GetFilteredMessagesAsync(Filter filter, Response<PaginationResult<Common.Data.Models.Message>> pagination, List<Sensor> filtered)
+		{
 			OrderDirection direction;
 
 			if(string.IsNullOrEmpty(filter.OrderDirection)) {
@@ -151,32 +168,32 @@ namespace SensateIoT.API.DataApi.Controllers
 				_ => OrderDirection.None,
 			};
 
+			pagination.Data = new PaginationResult<Common.Data.Models.Message>();
+
 			if(filter.Latitude != null & filter.Longitude != null && filter.Radius != null && filter.Radius.Value > 0) {
 				var coords = new GeoJsonPoint {
 					Latitude = filter.Latitude.Value,
 					Longitude = filter.Longitude.Value
 				};
 
-				pagination.Values = await this.m_messages
+
+				pagination.Data.Values = await this.m_messages
 					.GetMessagesNearAsync(filtered, filter.Start, filter.End, coords, filter.Radius.Value,
-						filter.Skip.Value, filter.Limit.Value, direction).AwaitBackground();
-				pagination.Count = (int)await this.m_messages
+										  filter.Skip!.Value, filter.Limit!.Value, direction).AwaitBackground();
+				pagination.Data.Count = (int)await this.m_messages
 					.CountAsync(filtered, filter.Start, filter.End, coords, filter.Radius.Value).ConfigureAwait(false);
 			} else {
-				pagination.Values = await this.m_messages
-					.GetMessagesBetweenAsync(filtered, filter.Start, filter.End, filter.Skip.Value,
-												 filter.Limit.Value, direction).AwaitBackground();
-				pagination.Count = (int)await this.m_messages
+				pagination.Data.Values = await this.m_messages
+					.GetMessagesBetweenAsync(filtered, filter.Start, filter.End, filter.Skip!.Value,
+											 filter.Limit!.Value, direction).AwaitBackground();
+				pagination.Data.Count = (int)await this.m_messages
 					.CountAsync(filtered, filter.Start, filter.End, null, 0).ConfigureAwait(false);
 			}
-
-
-			return this.Ok(pagination);
 		}
 
 		[HttpDelete]
-		[ProducesResponseType(typeof(Status), StatusCodes.Status401Unauthorized)]
-		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		[ProducesResponseType(typeof(Response<object>), StatusCodes.Status401Unauthorized)]
+		[ProducesResponseType(typeof(Response<object>), StatusCodes.Status404NotFound)]
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
 		public async Task<IActionResult> DeleteAsync([FromQuery] string sensorId,
 													 [FromQuery] DateTime? start,
@@ -197,7 +214,9 @@ namespace SensateIoT.API.DataApi.Controllers
 			var sensor = await this.m_sensors.GetAsync(sensorId).AwaitBackground();
 
 			if(sensor == null) {
-				return this.NotFound();
+				var response = new Response<object>();
+				response.AddError($"Sensor with Sensor ID {sensorId} could not be found.");
+				return this.NotFound(response);
 			}
 
 			await this.m_messages.DeleteBySensorAsync(sensor, start.Value, end.Value, CancellationToken.None);

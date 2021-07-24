@@ -18,13 +18,12 @@ using SensateIoT.API.Common.ApiCore.Attributes;
 using SensateIoT.API.Common.ApiCore.Controllers;
 using SensateIoT.API.Common.Core.Helpers;
 using SensateIoT.API.Common.Core.Infrastructure.Repositories;
+using SensateIoT.API.Common.Data.Dto;
 using SensateIoT.API.Common.Data.Dto.Json.Out;
 using SensateIoT.API.Common.Data.Enums;
 using SensateIoT.API.Common.Data.Models;
 using SensateIoT.API.Common.IdentityData.Models;
 using SensateIoT.API.DataApi.Json;
-
-using SensorStatisticsEntry = SensateIoT.API.Common.Data.Models.SensorStatisticsEntry;
 
 namespace SensateIoT.API.DataApi.Controllers
 {
@@ -59,17 +58,15 @@ namespace SensateIoT.API.DataApi.Controllers
 
 		[HttpGet(Name = "StatsIndex")]
 		[ActionName("QueryAllStats")]
-		[ProducesResponseType(typeof(IEnumerable<StatisticsEntry>), 200)]
-		[ProducesResponseType(200)]
-		[ProducesResponseType(403)]
-		[ProducesResponseType(typeof(Status), 400)]
+		[ProducesResponseType(typeof(Response<Count>), 200)]
+		[ProducesResponseType(typeof(Response<object>), 401)]
 		public async Task<IActionResult> Index([FromQuery] DateTime start, [FromQuery] DateTime end)
 		{
 			var __sensors = await this._sensors.GetAsync(this.CurrentUser).AwaitBackground();
 			var sensors = __sensors.ToList();
 
 			if(sensors.Count <= 0) {
-				return this.Ok();
+				return this.Ok(new Response<Count>());
 			}
 
 			return await this.CountAsync(this.CurrentUser, sensors, start, end).ConfigureAwait(false);
@@ -77,31 +74,27 @@ namespace SensateIoT.API.DataApi.Controllers
 
 		[HttpGet("{sensorId}")]
 		[ActionName("QueryStatsByDate")]
-		[ProducesResponseType(typeof(IEnumerable<SensorStatisticsEntry>), 200)]
-		[ProducesResponseType(403)]
-		[ProducesResponseType(typeof(Status), 403)]
-		[ProducesResponseType(typeof(Status), 400)]
+		[ProducesResponseType(typeof(Response<Count>), 200)]
+		[ProducesResponseType(typeof(Response<object>), 401)]
 		public async Task<IActionResult> StatisticsBySensor(string sensorId, [FromQuery] DateTime start, [FromQuery] DateTime end)
 		{
 			var sensor = await this._sensors.GetAsync(sensorId).ConfigureAwait(false);
 			var auth = await this.AuthenticateUserForSensor(sensor, false);
 
 			if(!auth) {
-				return this.Unauthorized(new Status {
-					Message = $"User not authorized {sensorId}",
-					ErrorCode = ReplyCode.NotAllowed
-				});
+				var response = new Response<object>();
+				response.AddError($"Unable to authorize user for {sensorId}.");
+				return this.Unauthorized(response);
 			}
 
 			var sensors = new List<Sensor> { sensor };
 			return await this.CountAsync(this.CurrentUser, sensors, start, end).AwaitBackground();
 		}
 
-		[HttpGet("count/{userId}/{sensorId}")]
-		[ProducesResponseType(typeof(Count), 200)]
-		[ProducesResponseType(typeof(Status), 400)]
-		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[AdminApiKey]
+		[HttpGet("count/{userId}/{sensorId}")]
+		[ProducesResponseType(typeof(Response<Count>), 200)]
+		[ProducesResponseType(typeof(Response<object>), 401)]
 		public async Task<IActionResult> CountByUserAndSensorAsync(string userId,
 											   string sensorId,
 											   [FromQuery] DateTime start,
@@ -113,21 +106,19 @@ namespace SensateIoT.API.DataApi.Controllers
 			var sensors = new List<Sensor> { sensor };
 
 			if(sensor.Owner != user.Id) {
-				return this.BadRequest(new Status {
-					Message = "User and sensor do not match.",
-					ErrorCode = ReplyCode.BadInput
-				});
+				var response = new Response<object>();
+				response.AddError($"Unable to authorize user for {sensorId}.");
+				return this.Unauthorized(response);
 			}
 
 			return await this.CountAsync(user, sensors, start, end).AwaitBackground();
 		}
 
 
-		[HttpGet("count/{userId}")]
-		[ProducesResponseType(typeof(Count), 200)]
-		[ProducesResponseType(typeof(Status), 400)]
-		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[AdminApiKey]
+		[HttpGet("count/{userId}")]
+		[ProducesResponseType(typeof(Response<Count>), 200)]
+		[ProducesResponseType(typeof(Response<object>), 401)]
 		public async Task<IActionResult> CountByUserIdAsync(string userId,
 											   [FromQuery] DateTime start,
 											   [FromQuery] DateTime end)
@@ -144,11 +135,8 @@ namespace SensateIoT.API.DataApi.Controllers
 		}
 
 		[HttpGet("count")]
-		[ProducesResponseType(typeof(Count), 200)]
-		[ProducesResponseType(typeof(Status), 403)]
-		[ProducesResponseType(typeof(Status), 400)]
-		[ProducesResponseType(403)]
-		[ProducesResponseType(404)]
+		[ProducesResponseType(typeof(Response<Count>), 200)]
+		[ProducesResponseType(typeof(Response<object>), 401)]
 		public async Task<IActionResult> CountBySensorIdAsync([FromQuery] string sensorId,
 															  [FromQuery] DateTime start,
 															  [FromQuery] DateTime end)
@@ -157,10 +145,9 @@ namespace SensateIoT.API.DataApi.Controllers
 			var auth = await this.AuthenticateUserForSensor(sensor, false);
 
 			if(!auth) {
-				return this.Unauthorized(new Status {
-					Message = $"User not authorized {sensorId}",
-					ErrorCode = ReplyCode.NotAllowed
-				});
+				var response = new Response<object>();
+				response.AddError($"Unable to authorize user for {sensorId}.");
+				return this.Unauthorized(response);
 			}
 
 			var sensors = new List<Sensor> { sensor };
@@ -173,7 +160,7 @@ namespace SensateIoT.API.DataApi.Controllers
 											   DateTime start,
 											   DateTime end)
 		{
-			Count count;
+			var response = new Response<Count>();
 
 			try {
 
@@ -199,7 +186,7 @@ namespace SensateIoT.API.DataApi.Controllers
 
 				var statsResult = await statsTask.ConfigureAwait(false);
 
-				count = new Count {
+				response.Data = new Count {
 					BlobStorage = bytes,
 					Sensors = await this._sensors.CountAsync(user).AwaitBackground(),
 					Measurements = 0,
@@ -211,11 +198,11 @@ namespace SensateIoT.API.DataApi.Controllers
 				};
 
 				foreach(var systemStatisticsEntry in statsResult) {
-					count.MessagesRoutedOther += systemStatisticsEntry.TotalMessagesRouted -
+					response.Data.MessagesRoutedOther += systemStatisticsEntry.TotalMessagesRouted -
 												 systemStatisticsEntry.TotalTriggersExecuted;
-					count.Messages += systemStatisticsEntry.TotalMessagesStored;
-					count.Measurements += systemStatisticsEntry.TotalMeasurementsStored;
-					count.TriggerInvocations += systemStatisticsEntry.TotalTriggersExecuted;
+					response.Data.Messages += systemStatisticsEntry.TotalMessagesStored;
+					response.Data.Measurements += systemStatisticsEntry.TotalMeasurementsStored;
+					response.Data.TriggerInvocations += systemStatisticsEntry.TotalTriggersExecuted;
 				}
 			} catch(Exception ex) {
 				this.m_logger.LogWarning(ex, $"Unable to count statistics between {start} and {end}");
@@ -226,7 +213,7 @@ namespace SensateIoT.API.DataApi.Controllers
 				});
 			}
 
-			return this.Ok(count);
+			return this.Ok(response);
 		}
 	}
 }
