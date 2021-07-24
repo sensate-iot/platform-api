@@ -179,14 +179,14 @@ namespace SensateIoT.API.DataApi.Controllers
 
 				pagination.Data.Values = await this.m_messages
 					.GetMessagesNearAsync(filtered, filter.Start, filter.End, coords, filter.Radius.Value,
-					                      filter.Skip!.Value, filter.Limit!.Value, direction).AwaitBackground();
-				pagination.Data.Count = (int) await this.m_messages
+										  filter.Skip!.Value, filter.Limit!.Value, direction).AwaitBackground();
+				pagination.Data.Count = (int)await this.m_messages
 					.CountAsync(filtered, filter.Start, filter.End, coords, filter.Radius.Value).ConfigureAwait(false);
 			} else {
 				pagination.Data.Values = await this.m_messages
 					.GetMessagesBetweenAsync(filtered, filter.Start, filter.End, filter.Skip!.Value,
-					                         filter.Limit!.Value, direction).AwaitBackground();
-				pagination.Data.Count = (int) await this.m_messages
+											 filter.Limit!.Value, direction).AwaitBackground();
+				pagination.Data.Count = (int)await this.m_messages
 					.CountAsync(filtered, filter.Start, filter.End, null, 0).ConfigureAwait(false);
 			}
 		}
