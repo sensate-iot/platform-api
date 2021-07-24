@@ -105,7 +105,10 @@ namespace SensateIoT.API.DataApi.Application
 				});
 			});
 
-			services.AddRouting();
+			services.AddRouting(o => {
+				o.LowercaseUrls = true;
+			});
+
 			services.AddControllers().AddNewtonsoftJson();
 
 			services.AddLogging((logging) => {
