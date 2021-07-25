@@ -11,7 +11,7 @@ WORKDIR /build
 
 COPY . .
 RUN dotnet restore -r linux-musl-x64 SensateIoT.API.DataApi/SensateIoT.API.DataApi.csproj
-RUN dotnet publish -c Release -o /app/bin -r linux-musl-x64 --no-restore --self-contained true --no-restore SensateIoT.API.DataApi/SensateIoT.API.DataApi.csproj
+RUN dotnet publish -c Release -o /app/bin -r linux-musl-x64 --no-restore --self-contained true  SensateIoT.API.DataApi/SensateIoT.API.DataApi.csproj
 
 FROM alpine:3.12
 
