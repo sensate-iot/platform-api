@@ -16,6 +16,7 @@ using SensateIoT.API.Common.Core.Helpers;
 using SensateIoT.API.Common.Core.Infrastructure.Repositories;
 using SensateIoT.API.Common.Core.Services.DataProcessing;
 using SensateIoT.API.Common.Data.Converters;
+using SensateIoT.API.Common.Data.Dto;
 using SensateIoT.API.Common.Data.Dto.Generic;
 using SensateIoT.API.Common.Data.Dto.Json.Out;
 using SensateIoT.API.Common.Data.Enums;
@@ -42,18 +43,16 @@ namespace SensateIoT.API.DataApi.Controllers
 		}
 
 		[HttpPost("measurements")]
-		[ProducesResponseType(typeof(Status), StatusCodes.Status422UnprocessableEntity)]
+		[ProducesResponseType(typeof(Response<object>), StatusCodes.Status422UnprocessableEntity)]
 		public async Task<IActionResult> Filter([FromBody] Filter filter)
 		{
 			var measurements = await this.GetMeasurementsAsync(filter).AwaitBackground();
 
 			if(measurements == null) {
-				var status = new Status {
-					Message = "Unable to fetch measurements!",
-					ErrorCode = ReplyCode.BadInput
-				};
+				var response = new Response<object>();
+				response.AddError("Unable to find any measurements for the given filter.");
 
-				return this.UnprocessableEntity(status);
+				return this.UnprocessableEntity(response);
 			}
 
 			var records = new List<dynamic>();

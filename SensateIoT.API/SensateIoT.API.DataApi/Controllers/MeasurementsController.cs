@@ -22,8 +22,8 @@ using SensateIoT.API.Common.Core.Helpers;
 using SensateIoT.API.Common.Core.Infrastructure.Repositories;
 using SensateIoT.API.Common.Core.Services.DataProcessing;
 using SensateIoT.API.Common.Data.Converters;
+using SensateIoT.API.Common.Data.Dto;
 using SensateIoT.API.Common.Data.Dto.Generic;
-using SensateIoT.API.Common.Data.Dto.Json.Out;
 using SensateIoT.API.Common.Data.Enums;
 using SensateIoT.API.Common.Data.Models;
 using SensateIoT.API.DataApi.Dto;
@@ -55,18 +55,16 @@ namespace SensateIoT.API.DataApi.Controllers
 		}
 
 		[HttpPost("filter")]
-		[ProducesResponseType(typeof(IEnumerable<MQR>), StatusCodes.Status200OK)]
-		[ProducesResponseType(typeof(Status), StatusCodes.Status422UnprocessableEntity)]
+		[ProducesResponseType(typeof(Response<IEnumerable<MQR>>), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(Response<object>), StatusCodes.Status422UnprocessableEntity)]
 		public async Task<IActionResult> Filter([FromBody] Filter filter)
 		{
-			var status = new Status();
 			IEnumerable<MeasurementsQueryResult> result;
+			var response = new Response<IEnumerable<MQR>>();
 
 			if(filter.SensorIds == null || filter.SensorIds.Count <= 0) {
-				status.ErrorCode = ReplyCode.BadInput;
-				status.Message = "Sensor ID list cannot be empty!";
-
-				return this.UnprocessableEntity(status);
+				response.Errors.Add("Sensor ID list cannot be empty!");
+				return this.UnprocessableEntity(response);
 			}
 
 			filter.Skip ??= -1;
@@ -76,10 +74,8 @@ namespace SensateIoT.API.DataApi.Controllers
 			var filtered = sensors.Values.Where(x => filter.SensorIds.Contains(x.InternalId.ToString())).ToList();
 
 			if(filtered.Count <= 0) {
-				status.Message = "No sensors available!";
-				status.ErrorCode = ReplyCode.NotAllowed;
-
-				return this.UnprocessableEntity(status);
+				response.Errors.Add("None of the input sensor IDs can be found!");
+				return this.UnprocessableEntity(response);
 			}
 
 			OrderDirection direction;
@@ -112,17 +108,19 @@ namespace SensateIoT.API.DataApi.Controllers
 												 filter.Limit.Value, direction).AwaitBackground();
 			}
 
-			return this.Ok(MeasurementConverter.Convert(result));
+			response.Data = MeasurementConverter.Convert(result);
+			return this.Ok(response);
 		}
 
 		[HttpGet]
-		[ProducesResponseType(typeof(IEnumerable<MQR>), StatusCodes.Status200OK)]
-		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+		[ProducesResponseType(typeof(Response<IEnumerable<MQR>>), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(Response<object>), StatusCodes.Status404NotFound)]
+		[ProducesResponseType(typeof(Response<object>), StatusCodes.Status401Unauthorized)]
 		public async Task<IActionResult> Get([FromQuery] string sensorId, [FromQuery] DateTime start, [FromQuery] DateTime end,
 			[FromQuery] double? longitude, [FromQuery] double? latitude, [FromQuery] int? radius,
 			[FromQuery] int skip = -1, [FromQuery] int limit = -1, [FromQuery] string order = "")
 		{
+			var response = new Response<IEnumerable<MQR>>();
 			var sensor = await this.m_sensors.GetAsync(sensorId).AwaitBackground();
 			var orderDirection = order switch {
 				"asc" => OrderDirection.Ascending,
@@ -131,13 +129,15 @@ namespace SensateIoT.API.DataApi.Controllers
 			};
 
 			if(sensor == null) {
-				return this.NotFound();
+				response.Errors.Add($"Sensor ID {sensorId} not found.");
+				return this.NotFound(response);
 			}
 
 			var linked = await this.IsLinkedSensor(sensorId).AwaitBackground();
 
 			if(!await this.AuthenticateUserForSensor(sensor, false).AwaitBackground() && !linked) {
-				return this.Unauthorized();
+				response.Errors.Add($"User {this.CurrentUser?.Id} not authorized on sensor {sensorId}.");
+				return this.Unauthorized(response);
 			}
 
 			if(end == DateTime.MinValue) {
@@ -161,33 +161,38 @@ namespace SensateIoT.API.DataApi.Controllers
 																	 skip, limit, orderDirection).AwaitBackground();
 			}
 
-			return this.Ok(MeasurementConverter.Convert(data));
+			response.Data = MeasurementConverter.Convert(data);
+			return this.Ok(response);
 		}
 
 		[HttpDelete]
 		[ReadWriteApiKey]
 		[ProducesResponseType(204)]
-		[ProducesResponseType(401)]
-		[ProducesResponseType(404)]
+		[ProducesResponseType(typeof(Response<object>), StatusCodes.Status404NotFound)]
+		[ProducesResponseType(typeof(Response<object>), StatusCodes.Status401Unauthorized)]
 		public async Task<IActionResult> Delete([FromQuery] string sensorId, [FromQuery] DateTime bucketStart, DateTime bucketEnd)
 		{
 			Sensor sensor;
+			var response = new Response<object>();
 
 			try {
 				sensor = await this.m_sensors.GetAsync(sensorId).AwaitBackground();
 
 				if(sensor == null) {
-					return this.NotFound();
+					response.Errors.Add($"Sensor ID {sensorId} not found.");
+					return this.NotFound(response);
 				}
 
 				if(!await this.AuthenticateUserForSensor(sensor, false).AwaitBackground()) {
-					return this.Unauthorized();
+					response.Errors.Add($"User {this.CurrentUser?.Id} not authorized on sensor {sensorId}.");
+					return this.Unauthorized(response);
 				}
 
 				await this.m_measurements.DeleteBucketAsync(sensor, bucketStart, bucketEnd, CancellationToken.None).ConfigureAwait(false);
 			} catch(DatabaseException ex) {
 				this.m_logger.LogWarning(ex, $"Unable to delete measurements for sensor {sensorId} in bucket {bucketStart} - {bucketEnd}.");
-				return this.StatusCode(500);
+				response.Errors.Add($"Unable to delete measurements for sensor {sensorId} in bucket {bucketStart} - {bucketEnd}.");
+				return this.StatusCode(500, response);
 			}
 
 			return this.NoContent();

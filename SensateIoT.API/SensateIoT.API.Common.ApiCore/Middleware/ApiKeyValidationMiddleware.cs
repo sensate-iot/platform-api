@@ -10,14 +10,16 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+
 using SensateIoT.API.Common.Core.Helpers;
 using SensateIoT.API.Common.Core.Infrastructure.Repositories;
-using SensateIoT.API.Common.Data.Dto.Json.Out;
-using SensateIoT.API.Common.Data.Enums;
+using SensateIoT.API.Common.Data.Dto;
 using SensateIoT.API.Common.IdentityData.Models;
 
 namespace SensateIoT.API.Common.ApiCore.Middleware
@@ -50,12 +52,10 @@ namespace SensateIoT.API.Common.ApiCore.Middleware
 			return url.Contains("swagger", StringComparison.OrdinalIgnoreCase);
 		}
 
-		private async Task RespondErrorAsync([NotNull] HttpContext ctx, ReplyCode code, string err, int http)
+		private async Task RespondErrorAsync([NotNull] HttpContext ctx, string err, int http)
 		{
-			var output = new Status {
-				ErrorCode = code,
-				Message = err
-			};
+			var output = new Response<object>();
+			output.AddError(err);
 
 			ctx.Response.Headers["Content-Type"] = "application/json";
 			ctx.Response.StatusCode = http;
@@ -82,7 +82,7 @@ namespace SensateIoT.API.Common.ApiCore.Middleware
 			} else if(ctx.Request.Headers.TryGetValue("X-ApiKey", out sv)) {
 				key = sv;
 			} else {
-				await this.RespondErrorAsync(ctx, ReplyCode.NotAllowed, "API key missing!", 400).AwaitBackground();
+				await this.RespondErrorAsync(ctx, "API key missing!", 400).AwaitBackground();
 				return;
 			}
 
@@ -93,7 +93,7 @@ namespace SensateIoT.API.Common.ApiCore.Middleware
 			var token = await repo.GetAsync(key, CancellationToken.None).AwaitBackground();
 
 			if(token == null) {
-				await this.RespondErrorAsync(ctx, ReplyCode.BadInput, "API key not found!", 401).AwaitBackground();
+				await this.RespondErrorAsync(ctx, "API key not found!", 401).AwaitBackground();
 				return;
 			}
 
@@ -103,17 +103,17 @@ namespace SensateIoT.API.Common.ApiCore.Middleware
 			var banned = await roles.GetByNameAsync(SensateRole.Banned).AwaitBackground();
 
 			if(IsBanned(token.User, banned)) {
-				await this.RespondErrorAsync(ctx, ReplyCode.Banned, "Bad API key!", 403).AwaitBackground();
+				await this.RespondErrorAsync(ctx, "Bad API key!", 403).AwaitBackground();
 				return;
 			}
 
 			if(token.Revoked) {
-				await this.RespondErrorAsync(ctx, ReplyCode.NotAllowed, "Bad API key!", 403).AwaitBackground();
+				await this.RespondErrorAsync(ctx, "Bad API key!", 403).AwaitBackground();
 				return;
 			}
 
 			if(token.User.BillingLockout) {
-				await this.RespondErrorAsync(ctx, ReplyCode.BillingLockout, "Billing lockout!", 402).AwaitBackground();
+				await this.RespondErrorAsync(ctx, "Billing lockout!", 402).AwaitBackground();
 				return;
 			}
 

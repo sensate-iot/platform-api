@@ -20,7 +20,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using SensateIoT.API.Common.Core.Helpers;
 using SensateIoT.API.Common.Core.Infrastructure.Repositories;
-using SensateIoT.API.Common.Data.Dto.Json.Out;
+using SensateIoT.API.Common.Data.Dto;
 using SensateIoT.API.Common.Data.Enums;
 using SensateIoT.API.Common.Data.Models;
 using SensateIoT.API.Common.IdentityData.Models;
@@ -59,12 +59,10 @@ namespace SensateIoT.API.Common.ApiCore.Middleware
 			};
 		}
 
-		private async Task RespondErrorAsync(HttpContext ctx, ReplyCode code, string err, int http)
+		private async Task RespondErrorAsync(HttpContext ctx, string err, int http)
 		{
-			var output = new Status {
-				ErrorCode = code,
-				Message = err
-			};
+			var output = new Response<object>();
+			output.AddError(err);
 
 			ctx.Response.Headers["Content-Type"] = "application/json";
 			ctx.Response.StatusCode = http;
@@ -97,7 +95,7 @@ namespace SensateIoT.API.Common.ApiCore.Middleware
 					ctx.Request.Method,
 					ctx.Request.Path,
 					ctx.Request.HttpContext.Connection.RemoteIpAddress,
-					ctx.Response?.StatusCode,
+					ctx.Response.StatusCode,
 					sw.ElapsedMilliseconds
 				);
 
@@ -117,12 +115,11 @@ namespace SensateIoT.API.Common.ApiCore.Middleware
 
 				await logs.CreateAsync(log, CancellationToken.None).AwaitBackground();
 			} catch(FormatException ex) {
-				this._logger.LogInformation(ex, "Invalid format detected!");
-				await this.RespondErrorAsync(ctx, ReplyCode.BadInput, "Invalid input supplied!", 422).AwaitBackground();
+				this._logger.LogWarning(ex, "Invalid format detected!");
+				await this.RespondErrorAsync(ctx, "Data formatting error detected.", 422).AwaitBackground();
 			} catch(Exception ex) {
 				this._logger.LogWarning(ex, "Unknown error occurred!");
-
-				await this.RespondErrorAsync(ctx, ReplyCode.UnknownError, "Bad request!", 500).AwaitBackground();
+				await this.RespondErrorAsync(ctx, "Unable to complete request.", 500).AwaitBackground();
 			}
 		}
 	}

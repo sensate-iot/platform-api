@@ -19,6 +19,7 @@ using Microsoft.OpenApi.Models;
 
 using SensateIoT.API.Common.ApiCore.Init;
 using SensateIoT.API.Common.ApiCore.Middleware;
+using SensateIoT.API.Common.ApiCore.Swagger;
 using SensateIoT.API.Common.Config.Config;
 using SensateIoT.API.Common.Core.Infrastructure.Repositories;
 using SensateIoT.API.Common.Core.Infrastructure.Sql;
@@ -74,6 +75,10 @@ namespace SensateIoT.API.DataApi.Application
 					Version = "v1"
 				});
 
+
+				c.SchemaFilter<ObjectIdSchemaFilter>();
+				c.OperationFilter<ObjectIdOperationFilter>();
+
 				c.AddSecurityDefinition("key", new OpenApiSecurityScheme {
 					In = ParameterLocation.Query,
 					Name = "key",
@@ -100,7 +105,10 @@ namespace SensateIoT.API.DataApi.Application
 				});
 			});
 
-			services.AddRouting();
+			services.AddRouting(o => {
+				o.LowercaseUrls = true;
+			});
+
 			services.AddControllers().AddNewtonsoftJson();
 
 			services.AddLogging((logging) => {
