@@ -9,9 +9,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+
 using SensateIoT.API.Common.ApiCore.Attributes;
 using SensateIoT.API.Common.ApiCore.Controllers;
 using SensateIoT.API.Common.Core.Helpers;
@@ -105,7 +107,7 @@ namespace SensateIoT.API.AuthApi.Controllers
 				} else {
 					logs = await this.m_logs.GetAllAsync(method, skip, limit, orderDirection).AwaitBackground();
 
-					var ids = logs.Values.DistinctBy(x => x.AuthorId).Select(x => x.AuthorId);
+					var ids = logs.Values.DistinctBySelector(x => x.AuthorId).Select(x => x.AuthorId);
 					var @enum = await this._users.GetRangeAsync(ids).AwaitBackground();
 					var users = @enum.ToList();
 
@@ -157,7 +159,7 @@ namespace SensateIoT.API.AuthApi.Controllers
 				} else {
 					logs = await this.m_logs.FindAsync(query, method, skip, limit, orderDirection).AwaitBackground();
 
-					var ids = logs.Values.DistinctBy(x => x.AuthorId).Select(x => x.AuthorId);
+					var ids = logs.Values.DistinctBySelector(x => x.AuthorId).Select(x => x.AuthorId);
 					var @enum = await this._users.GetRangeAsync(ids).AwaitBackground();
 
 					users = @enum.ToList();
