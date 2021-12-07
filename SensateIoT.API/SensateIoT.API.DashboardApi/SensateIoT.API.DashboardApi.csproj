@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <UserSecretsId>SensateService</UserSecretsId>
     <Authors>Michel Megens</Authors>
-    <Version>1.6.0</Version>
+    <Version>1.6.1</Version>
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <RootNamespace>SensateIoT.API.DashboardApi</RootNamespace>
     <AssemblyName>SensateIoT.API.DashboardApi</AssemblyName>
@@ -20,9 +20,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.8" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.8" />
-    <PackageReference Include="swashbuckle.aspnetcore" Version="6.1.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.0" />
+    <PackageReference Include="swashbuckle.aspnetcore" Version="6.2.3" />
   </ItemGroup>
 
   <ItemGroup>

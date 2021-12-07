@@ -39,8 +39,8 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Document
 				this._client = new MongoClient(mongosettings);
 				this._db = this._client.GetDatabase(settings.DatabaseName);
 			} catch(Exception ex) {
-				Console.WriteLine("Unable to connect to MongoDB!");
-				throw ex;
+				Console.WriteLine($"Unable to connect to MongoDB: {ex.Message}");
+				throw;
 			}
 
 		}

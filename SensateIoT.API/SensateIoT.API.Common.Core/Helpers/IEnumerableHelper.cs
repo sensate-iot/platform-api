@@ -12,7 +12,7 @@ namespace SensateIoT.API.Common.Core.Helpers
 {
 	public static class IEnumerableHelper
 	{
-		public static IEnumerable<T> DistinctBy<T, V>(this IEnumerable<T> source, Func<T, V> selector)
+		public static IEnumerable<T> DistinctBySelector<T, V>(this IEnumerable<T> source, Func<T, V> selector)
 		{
 			var seen = new HashSet<V>();
 
