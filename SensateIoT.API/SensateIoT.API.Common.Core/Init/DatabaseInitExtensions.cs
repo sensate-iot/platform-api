@@ -32,17 +32,24 @@ namespace SensateIoT.API.Common.Core.Init
 		{
 			services.AddDbContextPool<SensateSqlContext>(options => {
 				options.UseNpgsql(sensateiot);
+				options.UseNpgsql(sensateiot, o => {
+					o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+				});
 			}, 256);
 		}
 
 		public static void AddPostgres(this IServiceCollection services, string sensateiot, string network)
 		{
 			services.AddDbContextPool<SensateSqlContext>(options => {
-				options.UseNpgsql(sensateiot);
+				options.UseNpgsql(sensateiot, o => {
+					o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+				});
 			}, 256);
 
 			services.AddDbContextPool<NetworkContext>(options => {
-				options.UseNpgsql(network);
+				options.UseNpgsql(network, o => {
+					o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+				});
 			}, 256);
 		}
 	}
