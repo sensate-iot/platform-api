@@ -366,7 +366,7 @@ namespace SensateIoT.API.AuthApi.Controllers
 				Email = register.Email,
 				FirstName = register.FirstName,
 				LastName = register.LastName,
-				RegisteredAt = DateTime.Now,
+				RegisteredAt = DateTime.UtcNow,
 				UnconfirmedPhoneNumber = register.PhoneNumber,
 				BillingLockout = false
 			};

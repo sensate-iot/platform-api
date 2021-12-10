@@ -115,7 +115,7 @@ namespace SensateIoT.API.AuthApi.Controllers
 				UserId = user.Id,
 				Type = ApiKeyType.SystemKey,
 				Revoked = false,
-				CreatedOn = DateTime.Now.ToUniversalTime(),
+				CreatedOn = DateTime.UtcNow.ToUniversalTime(),
 				ReadOnly = false,
 				Name = Guid.NewGuid().ToString()
 			};
@@ -147,7 +147,7 @@ namespace SensateIoT.API.AuthApi.Controllers
 				return this.Forbid();
 			}
 
-			if(token.ExpiresAt < DateTime.Now) {
+			if(token.ExpiresAt < DateTime.UtcNow) {
 				await this._tokens.InvalidateTokenAsync(token).AwaitBackground();
 				return this.Forbid();
 			}
@@ -220,7 +220,7 @@ namespace SensateIoT.API.AuthApi.Controllers
 			var token = new AuthUserToken {
 				UserId = user.Id,
 				User = user,
-				ExpiresAt = DateTime.Now.AddMinutes(this._settings.JwtRefreshExpireMinutes),
+				ExpiresAt = DateTime.UtcNow.AddMinutes(this._settings.JwtRefreshExpireMinutes),
 				LoginProvider = UserTokenRepository.JwtRefreshTokenProvider,
 				Value = this._tokens.GenerateRefreshToken()
 			};

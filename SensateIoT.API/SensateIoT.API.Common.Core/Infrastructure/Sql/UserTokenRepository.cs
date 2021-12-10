@@ -127,7 +127,7 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Sql
 
 			var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.JwtKey));
 			var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-			var expires = DateTime.Now.AddMinutes(settings.JwtExpireMinutes);
+			var expires = DateTime.UtcNow.AddMinutes(settings.JwtExpireMinutes);
 
 			claims = new List<Claim> {
 				new Claim(JwtRegisteredClaimNames.Email, user.Email),

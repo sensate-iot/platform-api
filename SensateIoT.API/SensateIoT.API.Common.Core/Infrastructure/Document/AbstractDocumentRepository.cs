@@ -27,7 +27,7 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Document
 		{
 			DateTime timestamp;
 
-			timestamp = ts ?? DateTime.Now;
+			timestamp = ts ?? DateTime.UtcNow;
 			return ObjectId.GenerateNewId(timestamp);
 		}
 

@@ -106,7 +106,7 @@ namespace SensateIoT.API.Common.ApiCore.Middleware
 				}
 
 				log = new AuditLog {
-					Timestamp = DateTime.Now,
+					Timestamp = DateTime.UtcNow,
 					Method = ToRequestMethod(ctx.Request.Method),
 					Address = ctx.Request.HttpContext.Connection.RemoteIpAddress,
 					AuthorId = user?.Id,

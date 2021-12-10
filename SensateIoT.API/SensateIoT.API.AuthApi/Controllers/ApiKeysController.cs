@@ -52,7 +52,7 @@ namespace SensateIoT.API.AuthApi.Controllers
 			var key = new SensateApiKey {
 				Id = Guid.NewGuid().ToString(),
 				UserId = this.CurrentUser.Id,
-				CreatedOn = DateTime.Now.ToUniversalTime(),
+				CreatedOn = DateTime.UtcNow.ToUniversalTime(),
 				Revoked = false,
 				Type = ApiKeyType.ApiKey,
 				ReadOnly = request.ReadOnly,

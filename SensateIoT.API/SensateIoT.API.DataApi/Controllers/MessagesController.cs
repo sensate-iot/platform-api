@@ -96,7 +96,7 @@ namespace SensateIoT.API.DataApi.Controllers
 			};
 
 			start ??= DateTime.MinValue;
-			end ??= DateTime.Now;
+			end ??= DateTime.UtcNow;
 
 			start = start.Value.ToUniversalTime();
 			end = end.Value.ToUniversalTime();
@@ -200,7 +200,7 @@ namespace SensateIoT.API.DataApi.Controllers
 													 [FromQuery] DateTime? end)
 		{
 			start ??= DateTime.MinValue;
-			end ??= DateTime.Now;
+			end ??= DateTime.UtcNow;
 
 			start = start.Value.ToUniversalTime();
 			end = end.Value.ToUniversalTime();

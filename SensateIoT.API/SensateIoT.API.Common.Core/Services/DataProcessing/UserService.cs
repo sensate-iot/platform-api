@@ -35,7 +35,7 @@ namespace SensateIoT.API.Common.Core.Services.DataProcessing
 		public async Task DeleteAsync(SensateUser user, CancellationToken ct = default)
 		{
 			await this.m_users.DeleteAsync(user).AwaitBackground();
-			await this.m_logs.DeleteBetweenAsync(user, DateTime.MinValue, DateTime.Now);
+			await this.m_logs.DeleteBetweenAsync(user, DateTime.MinValue, DateTime.UtcNow);
 		}
 	}
 }
