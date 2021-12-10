@@ -27,12 +27,12 @@ namespace SensateIoT.API.Common.IdentityData.Models
 		public AuthUserToken()
 		{
 			this.Valid = true;
-			this.CreatedAt = DateTime.Now;
+			this.CreatedAt = DateTime.UtcNow;
 		}
 
 		public AuthUserToken(TimeSpan expiresIn) : this()
 		{
-			this.ExpiresAt = DateTime.Now.Add(expiresIn);
+			this.ExpiresAt = DateTime.UtcNow.Add(expiresIn);
 		}
 	}
 }

@@ -4,7 +4,7 @@ CREATE FUNCTION networkapi_selectuserbyemail(email TEXT)
         "Firstname" TEXT,
         "Lastname" TEXT,
         "Email" VARCHAR(256),
-        "RegisteredAt" TIMESTAMP,
+        "RegisteredAt" TIMESTAMP WITH TIME ZONE,
         "PhoneNumber" TEXT,
         "BillingLockout" BOOLEAN,
         "Role" VARCHAR(256)

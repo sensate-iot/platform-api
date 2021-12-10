@@ -244,7 +244,7 @@ namespace SensateIoT.API.DashboardApi.Controllers
 			Graph<DateTime, long> graph;
 			Dictionary<long, long> totals;
 
-			today = DateTime.Now.AddHours(-23D).ToUniversalTime().ThisHour();
+			today = DateTime.UtcNow.AddHours(-23D).ToUniversalTime().ThisHour();
 			graph = new Graph<DateTime, long>();
 			totals = new Dictionary<long, long>();
 			var measurements = await this.GetStatsFor(this.CurrentUser, today).AwaitBackground();

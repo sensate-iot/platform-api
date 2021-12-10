@@ -28,12 +28,12 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Document
 		public SensorRepository(SensateContext context) : base(context.Sensors)
 		{
 			this._sensors = context.Sensors;
-			this._rng = new Random(DateTime.Now.Millisecond);
+			this._rng = new Random(DateTime.UtcNow.Millisecond);
 		}
 
 		public override async Task CreateAsync(Sensor sensor, CancellationToken ct = default)
 		{
-			var now = DateTime.Now;
+			var now = DateTime.UtcNow;
 
 			sensor.CreatedAt = now;
 			sensor.UpdatedAt = now;

@@ -53,7 +53,7 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Sql
 			var profiles = this.Data.Where(u => ids.Contains(u.Id));
 
 			if(withKeys) {
-				profiles = profiles.Include(u => u.ApiKeys).ThenInclude(key => key.User);
+				profiles = profiles.Include(u => u.ApiKeys);
 			}
 
 			profiles = profiles.Include(u => u.UserRoles).ThenInclude(ur => ur.Role);
@@ -79,7 +79,7 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Sql
 		public SensateUser GetById(string key)
 		{
 			var query = this.Data.Where(u => u.Id == key)
-				.Include(u => u.ApiKeys).ThenInclude(k => k.User)
+				.Include(u => u.ApiKeys)
 				.Include(u => u.UserRoles).ThenInclude(ur => ur.Role);
 
 			return query.FirstOrDefault();
@@ -95,7 +95,7 @@ namespace SensateIoT.API.Common.Core.Infrastructure.Sql
 			var query = this.Data.Where(u => u.Id == key);
 
 			if(withKeys) {
-				query = query.Include(u => u.ApiKeys).ThenInclude(k => k.User);
+				query = query.Include(u => u.ApiKeys);
 			}
 
 			return query.Include(u => u.UserRoles).ThenInclude(ur => ur.Role).FirstOrDefaultAsync();

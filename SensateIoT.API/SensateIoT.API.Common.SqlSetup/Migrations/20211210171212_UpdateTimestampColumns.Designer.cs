@@ -3,6 +3,7 @@ using System;
 using System.Net;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SensateIoT.API.Common.Core.Infrastructure.Sql;
@@ -12,9 +13,10 @@ using SensateIoT.API.Common.Core.Infrastructure.Sql;
 namespace SensateIoT.API.SqlSetup.Migrations
 {
     [DbContext(typeof(SensateSqlContext))]
-    partial class SensateSqlContextModelSnapshot : ModelSnapshot
+    [Migration("20211210171212_UpdateTimestampColumns")]
+    partial class UpdateTimestampColumns
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
